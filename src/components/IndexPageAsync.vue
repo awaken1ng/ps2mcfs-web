@@ -43,11 +43,11 @@
           />
           <q-btn
             flat no-caps no-wrap icon="sym_s_select_all" title="Select all"
-            @click="selectAllEntries" :disabled="!isLoaded || !entries.length"
+            @click="selectAllEntries" :disabled="!isLoaded || !entries.length || selected.size === entries.length"
           />
           <q-btn
             flat no-caps no-wrap icon="sym_s_deselect" title="Deselect all"
-            @click="deselectAllEntries" :disabled="!isLoaded || !entries.length"
+            @click="deselectAllEntries" :disabled="!isLoaded || !entries.length || !selected.size"
           />
         </div>
       </q-toolbar>
