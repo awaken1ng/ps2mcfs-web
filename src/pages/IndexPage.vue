@@ -1,43 +1,38 @@
 <template>
-  <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
-  </q-page>
+  <Suspense>
+    <IndexPageAsync/>
+
+    <template #fallback>
+      <q-page-container>
+        <q-page class="column">
+          <div class="q-mx-auto q-my-auto">
+            <div v-if="error" class="q-ma-lg">
+              <div class="text-subtitle1">Initialization failed</div>
+              <div class="text-subtitle2">{{ error.name }}</div>
+              <div class="text-subtitle2">{{ error.message }}</div>
+              <pre class="text-caption">{{ error.stack }}</pre>
+            </div>
+
+            <q-spinner
+              v-else
+              color="primary"
+              size="4em"
+              :thickness="2"
+            />
+          </div>
+        </q-page>
+      </q-page-container>
+    </template>
+  </Suspense>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
+import IndexPageAsync from 'src/components/IndexPageAsync.vue'
+import { onErrorCaptured, ref } from 'vue'
 
-const todos = ref<Todo[]>([
-  {
-    id: 1,
-    content: 'ct1'
-  },
-  {
-    id: 2,
-    content: 'ct2'
-  },
-  {
-    id: 3,
-    content: 'ct3'
-  },
-  {
-    id: 4,
-    content: 'ct4'
-  },
-  {
-    id: 5,
-    content: 'ct5'
-  }
-]);
+const error = ref<Error>()
 
-const meta = ref<Meta>({
-  totalCount: 1200
-});
+onErrorCaptured((err) => {
+  error.value = err
+})
 </script>

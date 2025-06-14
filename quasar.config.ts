@@ -1,7 +1,8 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
-import { defineConfig } from '#q-app/wrappers';
+import { defineConfig } from '#q-app/wrappers'
+import { fileURLToPath } from 'node:url'
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -30,7 +31,7 @@ export default defineConfig((/* ctx */) => {
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
       'roboto-font', // optional, you are not bound to it
-      'material-icons', // optional, you are not bound to it
+      'material-symbols-sharp', // optional, you are not bound to it
     ],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
@@ -64,7 +65,11 @@ export default defineConfig((/* ctx */) => {
 
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
-      
+
+      alias: {
+        lib: fileURLToPath(new URL('./src/lib', import.meta.url)),
+      },
+
       vitePlugins: [
         ['vite-plugin-checker', {
           vueTsc: true,
@@ -86,7 +91,7 @@ export default defineConfig((/* ctx */) => {
     framework: {
       config: {},
 
-      // iconSet: 'material-icons', // Quasar icon set
+      iconSet: 'material-symbols-sharp', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
 
       // For special cases outside of where the auto-import strategy can have an impact
@@ -97,7 +102,10 @@ export default defineConfig((/* ctx */) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'Notify',
+        'Dialog',
+      ]
     },
 
     // animations: 'all', // --- includes all animations
