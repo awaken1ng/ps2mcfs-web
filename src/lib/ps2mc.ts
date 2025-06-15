@@ -135,9 +135,13 @@ const readDirectoryFiltered = (mcfs: Module, dirName: string) => {
 }
 
 export const readDirectoryFilteredSorted = (mcfs: Module, dirName: string) => {
-  const files = readDirectoryFiltered(mcfs, dirName)
+  const items = readDirectoryFiltered(mcfs, dirName)
 
-  files.sort((lhs, rhs) => {
+  const files: Entry[] = []
+  const directories: Entry[] = []
+  items.forEach(item => isFileEntry(item) ? files.push(item) : directories.push(item))
+
+  const byName = (lhs: Entry, rhs: Entry) => {
     if (lhs.name > rhs.name) {
       return 1
     } else if (lhs.name < rhs.name) {
@@ -145,9 +149,11 @@ export const readDirectoryFilteredSorted = (mcfs: Module, dirName: string) => {
     } else { // lhs.name === rhs.name
       return 0
     }
-  })
+  }
+  files.sort(byName)
+  directories.sort(byName)
 
-  return files
+  return directories.concat(files)
 }
 
 export const createDirectory = (mcfs: Module, dirPath: string) => {
