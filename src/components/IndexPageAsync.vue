@@ -26,7 +26,7 @@
 
       <q-toolbar class="toolbar-secondary">
         <div v-if="isLoaded" class="break-all">
-          {{ fileName }}
+          {{ fileName }} <span v-if="hasUnsavedChanges" class="non-selectable">*</span>
         </div>
         <q-skeleton v-else animation="none" width="10rem" />
 
