@@ -1,16 +1,22 @@
-export const getFileLegacy = (picker: HTMLInputElement) => {
-  return new Promise<File>((resolve, reject) => {
+export const getFilesLegacy = (picker: HTMLInputElement) => {
+  return new Promise<File[]>(resolve => {
     picker.onchange = () => {
-      const file = picker.files?.[0]
-      if (file) {
-        resolve(file)
-        return
+      const files: File[] = []
+
+      if (picker.files) {
+        for (const file of picker.files) {
+          files.push(file)
+        }
       }
-      reject(new Error('AbortError'))
+
+      resolve(files)
     }
     picker.click()
   })
 }
+
+export const getFileLegacy = async (picker: HTMLInputElement) =>
+  getFilesLegacy(picker).then(files => files[0])
 
 export const saveAsLegacy = (saver: HTMLAnchorElement, fileName: string, contents: Uint8Array) => {
   const opts = { type: 'application/octet-stream' }

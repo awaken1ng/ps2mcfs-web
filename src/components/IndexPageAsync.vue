@@ -343,6 +343,9 @@ const openFile = async () => {
     return
 
   const file = await getFileLegacy(filePicker.value)
+  if (!file)
+    return
+
   fileName.value = file.name
 
   const isValidSize = isNonEccImage(file.size) || isEccImage(file.size)
