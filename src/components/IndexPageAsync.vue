@@ -18,10 +18,6 @@
           flat no-caps sicon="sym_s_select_all" label="Close"
           @click="closeMemoryCard" :disable="!isLoaded"
         />
-
-        <q-space />
-
-        <q-spinner-orbit v-if="isLoading" class="loading-spinner" />
       </q-toolbar>
 
       <q-toolbar class="toolbar-secondary">
@@ -100,7 +96,7 @@
         separator
       >
         <q-item
-          v-if="isLoaded"
+          v-if="isLoaded && !isLoading"
           class="entry non-selectable"
           :clickable="!isCurrentPathRoot"
           @click="goUpCurrentDirectory"
@@ -133,11 +129,18 @@
               </div>
             </q-item-section>
           </template>
-
         </q-item>
 
         <q-item
-          v-if="!isLoaded"
+          v-if="isLoading"
+          class="entry double-height column items-center justify-center non-selectable"
+        >
+          <q-spinner-orbit />
+          <div class="text-subtitle2">Loading</div>
+        </q-item>
+
+        <q-item
+          v-else-if="!isLoaded"
           class="entry double-height column items-center justify-center non-selectable"
         >
           <div class="text-subtitle2">No card loaded</div>
@@ -155,6 +158,7 @@
         </q-item>
 
         <q-item
+          v-else
           class="entry non-selectable"
           v-for="entry in entries"
           :key="joinPath(currentPath, entry.name)"
