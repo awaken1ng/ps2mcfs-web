@@ -594,7 +594,7 @@ onBeforeUnload((event) => {
   flex-direction: column;
   justify-content: center;
   padding: 0 12px;
-  height: 56px;
+  height: 48px;
 }
 
 /* override line height in the tab labels so that the arrow icon is not as misaligned */
@@ -642,7 +642,6 @@ onBeforeUnload((event) => {
   .toolbar-secondary { flex-direction: row; }
 
   /* reset items height on non-mobile */
-  .breadcrumbs-skeleton { height: 48px; }
   .entries > .q-item { min-height: 48px; }
   .entries > .q-item.double-height { min-height: 96px; }
 
