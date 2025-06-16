@@ -219,9 +219,22 @@
         </q-item>
       </q-list>
 
-      <input ref="filePicker" type="file" hidden>
+      <input ref="filePickerSingle" type="file" hidden>
+      <input ref="filePickerMultiple" type="file" multiple hidden>
       <a ref="fileSaver" download hidden></a>
     </q-page>
+
+    <AddFilesDialogue
+      v-model="isAddFileDialogueOpen"
+      :entries-on-card="entries"
+      :files-to-add="filesToAdd"
+      :is-writing="isWriting"
+      :availableSpace="availableSpace"
+      @remove-item="removeItemFromAddList"
+      @remove-all="clearFilesToAdd"
+      @add-file="addFileToAddList"
+      @add-to-card="addFilesToCard"
+    />
   </q-page-container>
 </template>
 
@@ -243,18 +256,21 @@ import {
   MAX_NAME_LENGTH,
   getAvailableSpace,
   readFileFromEntry,
+  writeFile,
 } from 'lib/ps2mc'
-import { getFileLegacy, saveAsLegacy } from 'lib/file'
+import { getFileLegacy, getFilesLegacy, saveAsLegacy } from 'lib/file'
 import { QDialogOptions, useQuasar } from 'quasar'
-import { formatBytes, joinPath, onBeforeUnload } from 'lib/utils'
+import { formatBytes, joinPath, notifyWarning, onBeforeUnload } from 'lib/utils'
 import EntryAttributes from 'components/EntryAttributes.vue'
+import AddFilesDialogue, { type FileToAdd } from 'components/AddFilesDialogue.vue'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
 const $q = useQuasar()
 const mcfs = await createModule()
 
-const filePicker = useTemplateRef('filePicker')
+const filePickerSingle = useTemplateRef('filePickerSingle')
+const filePickerMultiple = useTemplateRef('filePickerMultiple')
 const fileSaver = useTemplateRef('fileSaver')
 
 const isLoading = ref(false)
@@ -339,10 +355,10 @@ const openFile = async () => {
   if (!await canDiscardUnsavedChanges('Open new file?'))
     return
 
-  if (!filePicker.value)
+  if (!filePickerSingle.value)
     return
 
-  const file = await getFileLegacy(filePicker.value)
+  const file = await getFileLegacy(filePickerSingle.value)
   if (!file)
     return
 
@@ -350,12 +366,7 @@ const openFile = async () => {
 
   const isValidSize = isNonEccImage(file.size) || isEccImage(file.size)
   if (!isValidSize) {
-    $q.notify({
-      position: 'bottom-right',
-      type: 'warning',
-      message: 'Invalid size, not a memory card image, or corrupted',
-      closeBtn: true,
-    })
+    notifyWarning({ message: 'Invalid size, not a memory card image, or corrupted' })
     return
   }
 
@@ -495,6 +506,57 @@ const saveFile = (entry: Entry) => {
 }
 
 // endregion: file operations
+
+// region: add file/directory
+
+const isAddFileDialogueOpen = ref(false)
+const isWriting = ref(false)
+const filesToAdd = ref<FileToAdd[]>([])
+
+const addFileToAddList = async () => {
+  if (!filePickerMultiple.value)
+    return
+
+  const files = await getFilesLegacy(filePickerMultiple.value)
+
+  const filesSize = files.reduce((total, item) => total + item.size, 0)
+  if (filesSize > availableSpace.value) {
+    notifyWarning({ message: `Not enough free space on the card` })
+    return
+  }
+
+  files.forEach(file => {
+    filesToAdd.value.push({ name: file.name, file })
+  })
+}
+
+const removeItemFromAddList = (idx: number) => {
+  filesToAdd.value.splice(idx, 1)
+}
+
+const clearFilesToAdd = () => {
+  filesToAdd.value = []
+}
+
+const addFilesToCard = async () => {
+  isWriting.value = true
+
+  for (let idx = 0; idx < filesToAdd.value.length; idx++) {
+    const file = filesToAdd.value[idx]!;
+
+    const filePath = joinPath(currentPath.value, file.name)
+    const contents = await file.file.bytes()
+    writeFile(mcfs, filePath, contents)
+  }
+
+  refreshDirectory()
+
+  isWriting.value = false
+  isAddFileDialogueOpen.value = false
+  clearFilesToAdd()
+}
+
+// endregion: add file/directory
 
 // region: navigation
 
