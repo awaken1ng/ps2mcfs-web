@@ -2,6 +2,7 @@
   <q-dialog
     :model-value="modelValue"
     @update:model-value="emit('update:modelValue', $event)"
+    transition-duration="0"
   >
     <q-card class="q-dialog-plugin">
       <q-card-section class="q-dialog__title">
