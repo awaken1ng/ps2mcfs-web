@@ -278,6 +278,7 @@ import EntryAttributes from 'components/EntryAttributes.vue'
 import AddFilesDialogue, { type FileToAdd } from 'components/AddFilesDialogue.vue'
 import MakeDirectoryDialogue from 'components/MakeDirectoryDialogue.vue'
 import RenameEntryDialogue from 'components/RenameEntryDialogue.vue'
+import { useDropZone } from '@vueuse/core'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
@@ -525,7 +526,7 @@ const saveFile = (entry: Entry) => {
 
 // endregion: file operations
 
-// region: add file/directory
+// region: add file
 
 const isAddFileDialogueOpen = ref(false)
 const isWriting = ref(false)
@@ -578,6 +579,40 @@ const addFilesToCard = async () => {
   isAddFileDialogueOpen.value = false
   clearFilesToAdd()
 }
+
+const onDrop = async (items: File[] | null) => {
+  if (!isLoaded.value || !items)
+    return
+
+  const files: File[] = []
+  for (const item of items) {
+    if (!item.size) {
+      try {
+        await item.bytes()
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          // presumably directory, skip
+          continue
+        }
+
+        throw err
+      }
+    }
+
+    files.push(item)
+  }
+
+  const mapped: FileToAdd[] = files.map(file => ({ name: file.name, file } ))
+
+  if (isAddFileDialogueOpen.value) {
+    filesToAdd.value = filesToAdd.value.concat(mapped)
+  } else {
+    filesToAdd.value = mapped || []
+    isAddFileDialogueOpen.value = true
+  }
+}
+
+useDropZone(document, { onDrop, multiple: true, preventDefaultForUnhandled: true })
 
 // endregion: add file/directory
 
