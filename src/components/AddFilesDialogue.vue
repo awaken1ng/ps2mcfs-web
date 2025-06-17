@@ -28,7 +28,6 @@
           :error-message="isNameValid[idx]"
           :error="isNameValid[idx] !== undefined"
           :disable="isWriting"
-          :loading="isWriting"
         >
           <template v-slot:before>
             <q-icon name="sym_s_draft" />
