@@ -21,14 +21,16 @@
       </q-toolbar>
 
       <q-toolbar class="toolbar-secondary">
-        <div v-if="isLoaded" class="break-all">
+        <div v-if="isLoaded" class="file-name">
           {{ fileName }} <span v-if="hasUnsavedChanges" class="non-selectable">*</span>
         </div>
         <q-skeleton v-else animation="none" width="10rem" />
 
-        <q-space class="toolbar-spacer" />
-
-        <div class="row justify-center">
+        <div class="row no-wrap justify-center">
+          <q-btn
+            flat no-caps no-wrap icon="sym_s_note_add" title="Add file"
+            @click="openAddFileDialogue" :disabled="!isLoaded"
+          />
           <q-btn
             flat no-caps no-wrap icon="sym_s_create_new_folder" title="Create new directory"
             @click="openMakeDirectoryDialogue" :disabled="!isLoaded"
@@ -529,6 +531,11 @@ const isAddFileDialogueOpen = ref(false)
 const isWriting = ref(false)
 const filesToAdd = ref<FileToAdd[]>([])
 
+const openAddFileDialogue = async () => {
+  isAddFileDialogueOpen.value = true
+  await addFileToAddList()
+}
+
 const addFileToAddList = async () => {
   if (!filePickerMultiple.value)
     return
@@ -679,7 +686,13 @@ onBeforeUnload((event) => {
 .toolbar-secondary {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   padding: 6px 12px;
+  gap: 6px;
+}
+
+.toolbar-secondary .file-name {
+  word-break: break-all;
 }
 
 .toolbar-primary .loading-spinner { margin: 12px 21px; }
@@ -751,5 +764,4 @@ onBeforeUnload((event) => {
   }
 }
 
-.break-all { word-break: break-all; }
 </style>
