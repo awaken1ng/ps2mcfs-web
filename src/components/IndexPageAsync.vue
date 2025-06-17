@@ -575,6 +575,7 @@ const addFilesToCard = async () => {
 
   refreshDirectory()
 
+  hasUnsavedChanges.value = true
   isWriting.value = false
   isAddFileDialogueOpen.value = false
   clearFilesToAdd()
