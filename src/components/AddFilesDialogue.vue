@@ -3,8 +3,6 @@
     :model-value="modelValue"
     @update:model-value="emit('update:modelValue', $event)"
     persistent
-    no-refocus
-    no-focus
   >
     <q-card class="q-dialog-plugin">
       <q-card-section class="q-dialog__title">
@@ -87,7 +85,7 @@
 
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from 'vue'
-import { Entry, isFileEntry, MAX_NAME_LENGTH } from 'lib/ps2mc'
+import { Entry, isEntryNameLegal, isFileEntry, MAX_NAME_LENGTH } from 'lib/ps2mc'
 import { formatBytes } from 'lib/utils'
 import { type QInput } from 'quasar'
 
@@ -114,21 +112,17 @@ const emit = defineEmits<{
 
 const isNameValid = computed(() =>
   props.filesToAdd.map((file) => {
-    if (!file.name)
-      return 'Name is empty'
-
-    if (file.name.length > MAX_NAME_LENGTH)
-      return 'Name too long'
+    const reason = isEntryNameLegal(file.name)
+    if (reason !== true)
+      return reason
 
     const entryWithSameName = props.entriesOnCard.find(entry => entry.name === file.name)
-    if (entryWithSameName) {
-      return (isFileEntry(entryWithSameName) ? 'File' : 'Directory') + ' with same already exists'
-    }
+    if (entryWithSameName)
+      return (isFileEntry(entryWithSameName) ? 'File' : 'Directory') + ' with same name already exists'
 
     const fileWithSameName = props.filesToAdd.find(f => f !== file && f.name === file.name)
-    if (fileWithSameName) {
+    if (fileWithSameName)
       return 'File with same name already selected'
-    }
   })
 )
 

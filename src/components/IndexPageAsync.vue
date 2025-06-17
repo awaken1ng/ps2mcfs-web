@@ -31,7 +31,7 @@
         <div class="row justify-center">
           <q-btn
             flat no-caps no-wrap icon="sym_s_create_new_folder" title="Create new directory"
-            @click="createNewDirectory" :disabled="!isLoaded"
+            @click="openMakeDirectoryDialogue" :disabled="!isLoaded"
           />
           <q-btn
             flat no-caps no-wrap icon="sym_s_delete" title="Delete"
@@ -212,7 +212,7 @@
               </q-item-section>
             </q-item>
 
-            <q-item clickable @click="renameEntryFromMenu(entry)">
+            <q-item clickable @click="openRenameEntryDialogue(entry)">
               <q-item-section>Rename</q-item-section>
             </q-item>
 
@@ -239,6 +239,17 @@
       @add-file="addFileToAddList"
       @add-to-card="addFilesToCard"
     />
+    <MakeDirectoryDialogue
+      v-model="isMakeDirectoryDialogueOpen"
+      :entries-on-card="entries"
+      @make-directory="createNewDirectory"
+    />
+    <RenameEntryDialogue
+      v-model="isRenameEntryDialogueOpen"
+      :entry="renamedEntry"
+      :entries-on-card="entries"
+      @rename-entry="renameEntryFromMenu"
+    />
   </q-page-container>
 </template>
 
@@ -257,7 +268,6 @@ import {
   renameEntry,
   createDirectory,
   isFileEntry,
-  MAX_NAME_LENGTH,
   getAvailableSpace,
   readFileFromEntry,
   writeFile,
@@ -267,6 +277,8 @@ import { QDialogOptions, useQuasar } from 'quasar'
 import { formatBytes, joinPath, notifyWarning, onBeforeUnload } from 'lib/utils'
 import EntryAttributes from 'components/EntryAttributes.vue'
 import AddFilesDialogue, { type FileToAdd } from 'components/AddFilesDialogue.vue'
+import MakeDirectoryDialogue from 'components/MakeDirectoryDialogue.vue'
+import RenameEntryDialogue from 'components/RenameEntryDialogue.vue'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
@@ -428,22 +440,22 @@ const closeMemoryCard = async () => {
   hasUnsavedChanges.value = false
 }
 
-const createNewDirectory = () => {
-  dialogNoTransition({
-    title: 'Create new directory',
-    message: `New directory name (${MAX_NAME_LENGTH} characters max):`,
-    prompt: {
-      model: '',
-      isValid: v => v.length > 0 && v.length <= MAX_NAME_LENGTH,
-    },
-    cancel: true,
-  }).onOk((dirName: string) => {
-    const dirPath = joinPath(currentPath.value, dirName)
-    createDirectory(mcfs, dirPath)
-    refreshDirectory()
-    hasUnsavedChanges.value = true
-  })
+// region: mkdir
+
+const isMakeDirectoryDialogueOpen = ref(false)
+
+const openMakeDirectoryDialogue = () => {
+  isMakeDirectoryDialogueOpen.value = true
 }
+
+const createNewDirectory = (dirName: string) => {
+  const dirPath = joinPath(currentPath.value, dirName)
+  createDirectory(mcfs, dirPath)
+  refreshDirectory()
+  hasUnsavedChanges.value = true
+}
+
+// endregion: mkdir
 
 const deleteSelectedEntries = () => {
   if (!selected.value.size)
@@ -481,22 +493,26 @@ const deleteEntryFromMenu = (entry: Entry) => {
   })
 }
 
-const renameEntryFromMenu = (entry: Entry) => {
-  const entryType = isFileEntry(entry) ? 'file' : 'directory'
-  dialogNoTransition({
-    title: `Rename ${entryType}`,
-    message: `New ${entryType} name (${MAX_NAME_LENGTH} characters max):`,
-    prompt: {
-      model: entry.name,
-      isValid: v => v.length > 0 && v.length <= MAX_NAME_LENGTH && v !== entry.name,
-    },
-    cancel: true,
-  }).onOk((newName: string) => {
-    renameEntry(mcfs, currentPath.value, entry, newName)
-    refreshDirectory()
-    hasUnsavedChanges.value = true
-  })
+// region: rename
+
+const isRenameEntryDialogueOpen  = ref(false)
+const renamedEntry = ref<Entry>()
+
+const openRenameEntryDialogue = (entry: Entry) => {
+  renamedEntry.value = entry
+  isRenameEntryDialogueOpen.value = true
 }
+
+const renameEntryFromMenu = (newName: string) => {
+  if (!renamedEntry.value)
+    return
+
+  renameEntry(mcfs, currentPath.value, renamedEntry.value, newName)
+  refreshDirectory()
+  hasUnsavedChanges.value = true
+}
+
+// endregion: rename
 
 const saveFile = (entry: Entry) => {
   if (!fileSaver.value)
