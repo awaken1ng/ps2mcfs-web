@@ -219,6 +219,19 @@
               <q-item-section>Delete</q-item-section>
             </q-item>
           </q-menu>
+
+          <q-menu
+            touch-position
+            context-menu
+          >
+            <q-list>
+              <UseClipboard v-slot="{ copy }" :source="entry.name">
+                <q-item clickable v-close-popup @click="copy()">
+                  <q-item-section>Copy name</q-item-section>
+                </q-item>
+              </UseClipboard>
+            </q-list>
+          </q-menu>
         </q-item>
       </q-list>
 
@@ -279,6 +292,7 @@ import AddFilesDialogue, { type FileToAdd } from 'components/AddFilesDialogue.vu
 import MakeDirectoryDialogue from 'components/MakeDirectoryDialogue.vue'
 import RenameEntryDialogue from 'components/RenameEntryDialogue.vue'
 import { useDropZone } from '@vueuse/core'
+import { UseClipboard } from '@vueuse/components'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
