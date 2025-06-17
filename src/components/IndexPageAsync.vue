@@ -38,12 +38,9 @@
             @click="deleteSelectedEntries" :disabled="!Boolean(selected.size)"
           />
           <q-btn
-            flat no-caps no-wrap icon="sym_s_select_all" title="Select all"
-            @click="selectAllEntries" :disabled="!isLoaded || !entries.length || selected.size === entries.length"
-          />
-          <q-btn
-            flat no-caps no-wrap icon="sym_s_deselect" title="Deselect all"
-            @click="deselectAllEntries" :disabled="!isLoaded || !entries.length || !selected.size"
+            flat no-caps no-wrap
+            :icon="selectOrDeselectIcon" :title="selectOrDeselectTitle"
+            @click="selectOrDeselectAllEntries" :disabled="!isLoaded || !entries.length"
           />
         </div>
       </q-toolbar>
@@ -315,7 +312,6 @@ const cardSize = ref(0)
 const availableSpace = ref(0)
 
 const entries = ref<Entry[]>([])
-const selected = ref<Set<Entry>>(new Set())
 
 const dialogNoTransition = (opts: QDialogOptions) => {
   return $q.dialog({
@@ -578,7 +574,9 @@ const addFilesToCard = async () => {
 
 // endregion: add file/directory
 
-// region: navigation
+// region: selection
+
+const selected = ref<Set<Entry>>(new Set())
 
 const toggleEntrySelection = (entry: Entry) => {
   if (selected.value.has(entry)) {
@@ -593,6 +591,22 @@ const selectAllEntries = () =>
 
 const deselectAllEntries = () => selected.value.clear()
 
+const isSelectAll = computed(() => !selected.value.size)
+
+const selectOrDeselectAllEntries = () => {
+  if (isSelectAll.value)
+    selectAllEntries()
+  else
+    deselectAllEntries()
+}
+
+const selectOrDeselectIcon = computed(() => isSelectAll.value ? 'sym_s_select_all' : 'sym_s_deselect')
+
+const selectOrDeselectTitle = computed(() => isSelectAll.value ? 'Select all' : 'Deselect all')
+
+// endregion: selection
+
+// region: navigation
 
 const refreshDirectory = () => {
   entries.value = readDirectoryFilteredSorted(mcfs, currentPath.value)
