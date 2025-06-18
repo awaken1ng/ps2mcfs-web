@@ -8,7 +8,7 @@ import { McDirEntry, type Module, sceMcFileAttrReadable, sceMcFileAttrWriteable,
 } from './mcfs'
 
 export type EntryType = 'directory' | 'file'
-export type Entry = Omit<McDirEntry, 'hasMore'> & { type: EntryType }
+export type Entry = Omit<McDirEntry, 'hasMore'>
 type McInitResult = McFatCardSpecs & { availableSpace : number } | undefined
 
 export const MAX_NAME_LENGTH = 31
@@ -128,8 +128,7 @@ const readDirectoryFiltered = (mcfs: Module, dirName: string) => {
     if (name === '.' || name === '..')
       continue
 
-    const type = (stat.mode & sceMcFileAttrSubdir) ? 'directory' : 'file'
-    files.push({ name, type, stat })
+    files.push({ name, stat })
   }
 
   const code = mcfs.dclose(fd);
