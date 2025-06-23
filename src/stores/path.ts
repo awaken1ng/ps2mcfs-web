@@ -1,9 +1,15 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { joinPath } from 'lib/utils'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 export const usePathStore = defineStore('path', () => {
-  const current = ref('/')
+  const router = useRouter()
+
+  const current = computed({
+    get: () => router.currentRoute.value.path,
+    set: (path: string) => router.push({ path })
+  })
 
   const isRoot = computed(() => current.value === '/')
 
