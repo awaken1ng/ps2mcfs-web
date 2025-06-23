@@ -46,11 +46,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { MAX_NAME_LENGTH, isEntryNameLegal, isFileEntry, Entry } from 'lib/ps2mc'
-import { QInput } from 'quasar'
+import { useEntryListStore } from 'stores/entryList'
 
 const props = defineProps<{
   modelValue: boolean,
-  entriesOnCard: Entry[],
   entry: Entry | undefined,
 }>()
 
@@ -59,6 +58,8 @@ const emit = defineEmits<{
   (event: 'renameEntry', newName: string): void
 }>()
 
+const entryList = useEntryListStore()
+
 const newName = ref('')
 
 const nameInvalidReason = computed(() => {
@@ -66,7 +67,7 @@ const nameInvalidReason = computed(() => {
   if (reason !== true)
     return reason
 
-  const entryWithSameName = props.entriesOnCard.find(entry => entry.name === newName.value)
+  const entryWithSameName = entryList.entries.find(entry => entry.name === newName.value)
   if (entryWithSameName)
     return (isFileEntry(entryWithSameName) ? 'File' : 'Directory') + ' with same name already exists'
 

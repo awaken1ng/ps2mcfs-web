@@ -85,9 +85,10 @@
 
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from 'vue'
-import { Entry, isEntryNameLegal, isFileEntry, MAX_NAME_LENGTH } from 'lib/ps2mc'
+import { isEntryNameLegal, isFileEntry, MAX_NAME_LENGTH } from 'lib/ps2mc'
 import { formatBytes } from 'lib/utils'
 import { type QInput } from 'quasar'
+import { useEntryListStore } from 'stores/entryList'
 
 export interface FileToAdd {
   name: string,
@@ -96,7 +97,6 @@ export interface FileToAdd {
 
 const props = defineProps<{
   modelValue: boolean,
-  entriesOnCard: Entry[]
   filesToAdd: FileToAdd[],
   isWriting: boolean,
   availableSpace: number,
@@ -110,13 +110,15 @@ const emit = defineEmits<{
   (event: 'addToCard'): void
 }>()
 
+const entryList = useEntryListStore()
+
 const isNameValid = computed(() =>
   props.filesToAdd.map((file) => {
     const reason = isEntryNameLegal(file.name)
     if (reason !== true)
       return reason
 
-    const entryWithSameName = props.entriesOnCard.find(entry => entry.name === file.name)
+    const entryWithSameName = entryList.entries.find(entry => entry.name === file.name)
     if (entryWithSameName)
       return (isFileEntry(entryWithSameName) ? 'File' : 'Directory') + ' with same name already exists'
 

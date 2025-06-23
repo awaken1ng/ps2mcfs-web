@@ -1,5 +1,6 @@
-import { Notify, type QNotifyCreateOptions } from 'quasar'
-import { onMounted, onUnmounted } from 'vue';
+import { Notify, Dialog, QDialogOptions, type QNotifyCreateOptions } from 'quasar'
+import { useMcfsStore } from 'src/stores/mcfs'
+import { onMounted, onUnmounted } from 'vue'
 
 type ErrorMessage = {  message: string, caption?: string }
 
@@ -45,6 +46,14 @@ export const formatBytes = (bytes: number) => {
   }
 }
 
+export const pluralizeItems = (n: number) => {
+  const cardinalRules = new Intl.PluralRules("en-US")
+  const category = cardinalRules.select(n)
+  const form = category === 'one' ? 'item' : 'items'
+
+  return `${n} ${form}`
+}
+
 export const joinPath = (a: string, b: string) => {
   if (a[a.length - 1] !== '/')
     a += '/'
@@ -54,10 +63,50 @@ export const joinPath = (a: string, b: string) => {
 
 export const onBeforeUnload = (handler: (event: BeforeUnloadEvent) => void) => {
   onMounted(() => {
-    window.addEventListener('beforeunload', handler)
+    document.addEventListener('beforeunload', handler)
   })
 
   onUnmounted(() => {
-    window.removeEventListener("beforeunload", handler)
+    document.removeEventListener("beforeunload", handler)
   })
 }
+
+export const onClickOutside = (handler: (event: Event) => void) => {
+  onMounted(() => {
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('touchstart', handler)
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('mousedown', handler)
+    document.removeEventListener('touchstart', handler)
+  })
+}
+
+export const dialogNoTransition = (opts: QDialogOptions) => {
+  return Dialog.create({
+    // remove transition animation to focus immediately,
+    // instead of waiting for animation to end first
+    // @ts-expect-error not defined in the interface, but its a valid prop
+    transitionDuration: 0,
+    ...opts
+  })
+}
+
+export const canDiscardUnsavedChanges = (message: string) => new Promise((resolve) => {
+  const state = useMcfsStore()
+
+  if (!state.hasUnsavedChanges) {
+    resolve(true)
+    return
+  }
+
+  dialogNoTransition({
+    title: 'Unsaved changes',
+    message,
+    cancel: true,
+  })
+  .onOk(() => resolve(true))
+  .onCancel(() => resolve(false))
+  .onDismiss(() => resolve(false))
+})
