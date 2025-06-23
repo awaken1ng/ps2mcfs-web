@@ -8,10 +8,14 @@
   "private": true,
   "scripts": {
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
-    "postinstall": "quasar prepare"
+    "postinstall": "quasar prepare",
+    "test:e2e": "cross-env NODE_ENV=test TS_NODE_PROJECT=test/cypress/tsconfig.json start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress open --e2e\"",
+    "test:e2e:ci": "cross-env NODE_ENV=test TS_NODE_PROJECT=test/cypress/tsconfig.json start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress run --e2e\"",
+    "test:component": "cross-env NODE_ENV=test TS_NODE_PROJECT=test/cypress/tsconfig.json cypress open --component",
+    "test:component:ci": "cross-env NODE_ENV=test TS_NODE_PROJECT=test/cypress/tsconfig.json cypress run --component"
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
@@ -25,6 +29,7 @@
   "devDependencies": {
     "@eslint/js": "^9.28.0",
     "@quasar/app-vite": "^2.2.0",
+    "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.2.1",
     "@types/node": "^22.15.30",
     "@vue/eslint-config-typescript": "^14.5.0",
     "autoprefixer": "^10.4.21",
@@ -33,7 +38,9 @@
     "globals": "^16.2.0",
     "typescript": "~5.8.3",
     "vite-plugin-checker": "^0.9.3",
-    "vue-tsc": "^2.2.10"
+    "vue-tsc": "^2.2.10",
+    "cypress": "^14.2.1",
+    "eslint-plugin-cypress": "^4.2.1"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
