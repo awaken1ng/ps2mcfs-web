@@ -185,11 +185,14 @@ export const useMcfs = () => {
     items.forEach(item => isFileEntry(item) ? files.push(item) : directories.push(item))
 
     const byName = (lhs: Entry, rhs: Entry) => {
-      if (lhs.name > rhs.name) {
+      const lhsLower = lhs.name.toLowerCase()
+      const rhsLower = rhs.name.toLowerCase()
+
+      if (lhsLower > rhsLower) {
         return 1
-      } else if (lhs.name < rhs.name) {
+      } else if (lhsLower < rhsLower) {
         return -1
-      } else { // lhs.name === rhs.name
+      } else { // lhs === rhs
         return 0
       }
     }
