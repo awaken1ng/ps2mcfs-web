@@ -41,10 +41,12 @@ import McfsEntryList from 'components/McfsEntryList.vue'
 import { useMcfsStore } from 'stores/mcfs'
 import { storeToRefs } from 'pinia'
 import { onBeforeUnload } from 'lib/utils'
-import { onErrorCaptured, ref } from 'vue'
+import { onErrorCaptured, ref, watchEffect } from 'vue'
+import { usePathStore } from 'stores/path'
 
 const error = ref<Error>()
 
+const path = usePathStore()
 const mcfsState = useMcfsStore()
 const { hasUnsavedChanges } = storeToRefs(mcfsState)
 
@@ -57,6 +59,11 @@ onBeforeUnload((event) => {
 
 onErrorCaptured((err) => {
   error.value = err
+})
+
+watchEffect(() => {
+  if (!mcfsState.isLoaded && !path.isRoot)
+    path.goToRoot()
 })
 </script>
 
