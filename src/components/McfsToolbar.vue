@@ -68,11 +68,11 @@ import DialogueFilesAdd, { type FileToAdd } from 'components/DialogueFilesAdd.vu
 import DialogueDirectoryCreate from 'components/DialogueDirectoryCreate.vue'
 import { isEccImage, isNonEccImage, useMcfs } from 'lib/ps2mc'
 import { dialogNoTransition, canDiscardUnsavedChanges, notifyWarning, pluralizeItems } from 'lib/utils'
-import { useOpenFileDialog, useSaveFileDialog } from 'lib/file'
+import { useSaveFileDialog } from 'lib/file'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
-import { useDropZone } from '@vueuse/core'
+import { useDropZone, useFileDialog } from '@vueuse/core'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
@@ -82,9 +82,6 @@ const entryList = useEntryListStore()
 
 const { isLoaded, availableSpace, hasUnsavedChanges } = storeToRefs(mcfs.state)
 const { entries, selected } = storeToRefs(entryList)
-
-const openFileDialogue = useOpenFileDialog()
-const saveFileDiloague = useSaveFileDialog()
 
 const newMemoryCard = async () => {
   if (!await canDiscardUnsavedChanges('Create new memory card?'))
@@ -98,14 +95,20 @@ const newMemoryCard = async () => {
   entryList.refresh()
 }
 
+const openMemoryCardDialog = useFileDialog({ multiple: false, reset: true })
+
 const openMemoryCardFromFile = async () => {
   if (!await canDiscardUnsavedChanges('Open new file?'))
     return
 
-  const file = await openFileDialogue.open({ multiple: false })
-  if (!file)
+  openMemoryCardDialog.open()
+}
+
+openMemoryCardDialog.onChange(async (files) => {
+  if (!files || files.length !== 1)
     return
 
+  const file = files.item(0)!
   fileName.value = file.name
 
   const isValidSize = isNonEccImage(file.size) || isEccImage(file.size)
@@ -122,7 +125,9 @@ const openMemoryCardFromFile = async () => {
 
   path.goToRoot()
   entryList.refresh()
-}
+})
+
+const saveFileDiloague = useSaveFileDialog()
 
 const saveMemoryCardAs = () => {
   if (!isLoaded.value)
@@ -155,17 +160,29 @@ const fileName = ref(DEFAULT_FILENAME)
 
 // region: add file
 
+const pickFileDialog = useFileDialog({ multiple: true, reset: true })
+
 const isAddFileDialogueOpen = ref(false)
 const isWriting = ref(false)
 const filesToAdd = ref<FileToAdd[]>([])
 
-const openAddFileDialogue = async () => {
+const openAddFileDialogue = () => {
   isAddFileDialogueOpen.value = true
-  await addFileToAddList()
+  addFileToAddList()
 }
 
-const addFileToAddList = async () => {
-  const files = await openFileDialogue.open({ multiple: true })
+const addFileToAddList = () => {
+  pickFileDialog.open()
+}
+
+pickFileDialog.onChange((fileList) => {
+  if (!fileList)
+    return
+
+  const files: File[] = []
+  for (const file of fileList) {
+    files.push(file)
+  }
 
   const filesSize = files.reduce((total, item) => total + item.size, 0)
   if (filesSize > availableSpace.value) {
@@ -176,7 +193,7 @@ const addFileToAddList = async () => {
   files.forEach(file => {
     filesToAdd.value.push({ name: file.name, file })
   })
-}
+})
 
 const removeItemFromAddList = (idx: number) => {
   filesToAdd.value.splice(idx, 1)
