@@ -149,7 +149,10 @@ const openDirectory = (entry: Entry) => {
   path.goToDirectory(dirPath)
 }
 
-watch(() => path.current, entryList.refresh)
+watch(() => path.current, () => {
+  if (mcfs.state.isLoaded)
+    entryList.refresh()
+})
 
 // region: menu
 
