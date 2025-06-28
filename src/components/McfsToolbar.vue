@@ -105,6 +105,7 @@ import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
 import { useDropZone, useFileDialog } from '@vueuse/core'
 import { Psu, readPsu } from 'src/lib/psu'
+import { useMeta } from 'quasar'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
@@ -186,6 +187,11 @@ const closeMemoryCard = async () => {
 }
 
 const fileName = ref(DEFAULT_FILENAME)
+
+useMeta(() => ({
+  // titleTemplate doesn't work with reactive meta, *sigh*
+  title: mcfs.state.isLoaded ? `PS2 VMC - ${fileName.value}` : `PS2 VMC`
+}))
 
 // region: add file
 
