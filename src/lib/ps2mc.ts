@@ -1,15 +1,23 @@
 import { inject } from 'vue'
 import { joinPath, notifyError, notifyWarning } from './utils'
-import { McDirEntry, type Module, sceMcFileAttrReadable, sceMcFileAttrWriteable,
+import { McEntryInfo, type Module, sceMcFileAttrReadable, sceMcFileAttrWriteable,
   sceMcFileAttrExecutable, sceMcFileAttrDupProhibit, sceMcFileAttrFile,
   sceMcFileAttrSubdir, sceMcFileAttrPDAExec, sceMcFileAttrHidden, sceMcFileAttrPS1,
   McFatCardSpecs, sceMcResSucceed,
   CF_USE_ECC, CF_BAD_BLOCK, CF_ERASE_ZEROES,
   sceMcFileCreateFile, sceMcResNotFile, sceMcResNoEntry,
+  McStDateTime,
+  mcFileUpdateAttrMode,
+  mcFileUpdateAttrCtime,
+  mcFileUpdateAttrMtime,
+  McIoStat,
+  sceMcFile0400,
+  sceMcFileAttrExists,
 } from './mcfs'
 import { useMcfsStore } from 'stores/mcfs'
+import { alignTo, Psu, serializePsuEntry } from './psu'
 
-export type Entry = Omit<McDirEntry, 'hasMore'>
+export type Entry = McEntryInfo
 
 export const MAX_NAME_LENGTH = 31
 
@@ -21,20 +29,12 @@ const ILLEGAL_NAME_CHARACTERS = [
 
 export const notifyErrorWithCode = (message: string, code: number) => notifyError({ message, caption: `Error code ${code}` })
 
-const readDirectoryFiltered = (mcfs: Module, dirName: string) => {
-  const fd = mcfs.dopen(dirName)
-  if (fd < 0) {
-    notifyErrorWithCode(`Failed to open directory ${dirName}`, fd)
-    return []
-  }
-
-  const files: Array<Entry> = []
-
+export const readDirectoryFiltered = function* (mcfs: Module, fd: number) {
   while (true) {
     const result = mcfs.dread(fd)
     if ('code' in result) {
       // don't return here, close the handle first
-      notifyErrorWithCode(`Failed to read directory ${dirName}`, result.code)
+      notifyErrorWithCode(`Failed to read directory`, result.code)
       break
     }
 
@@ -45,15 +45,8 @@ const readDirectoryFiltered = (mcfs: Module, dirName: string) => {
     if (name === '.' || name === '..')
       continue
 
-    files.push({ name, stat })
+    yield { name, stat }
   }
-
-  const code = mcfs.dclose(fd);
-  if (code < 0) {
-    notifyErrorWithCode(`Failed to close directory ${dirName}`, code)
-  }
-
-  return files
 }
 
 const checkEntryExistence = (mcfs: Module, path: string) => {
@@ -73,6 +66,16 @@ const checkEntryExistence = (mcfs: Module, path: string) => {
   }
 
   return true // it's a file
+}
+
+const EMPTY_DATE: McStDateTime = {
+  resv2: 0,
+  sec: 0,
+  min: 0,
+  hour: 0,
+  day: 0,
+  month: 0,
+  year: 0
 }
 
 export const mcfsInjectionKey = Symbol()
@@ -165,12 +168,12 @@ export const useMcfs = () => {
     state.hasUnsavedChanges = false
   }
 
-  const createDirectory = (dirPath: string) => {
-    const fd = mcfs.mkDir(dirPath)
+  const createDirectory = (opts: { path: string, existsOk: boolean }) => {
+    const fd = mcfs.mkDir(opts.path)
     if (fd === sceMcResNoEntry) {
-      notifyWarning({ message: `${dirPath} already exists` })
+      if (!opts.existsOk) notifyWarning({ message: `${opts.path} already exists` })
     } else if (fd !== sceMcResSucceed) {
-      notifyErrorWithCode(`Failed to create ${dirPath} directory`, fd)
+      notifyErrorWithCode(`Failed to create ${opts.path} directory`, fd)
     }
 
     state.hasUnsavedChanges = true
@@ -178,11 +181,26 @@ export const useMcfs = () => {
   }
 
   const readDirectoryFilteredSorted = (dirName: string) => {
-    const items = readDirectoryFiltered(mcfs, dirName)
+    const fd = mcfs.dopen(dirName)
+    if (fd < 0) {
+      notifyErrorWithCode(`Failed to open directory ${dirName}`, fd)
+      return []
+    }
 
     const files: Entry[] = []
     const directories: Entry[] = []
-    items.forEach(item => isFileEntry(item) ? files.push(item) : directories.push(item))
+    for (const item of readDirectoryFiltered(mcfs, fd)) {
+      if (isFileEntry(item)) {
+        files.push(item)
+      } else {
+        directories.push(item)
+      }
+    }
+
+    const code = mcfs.dclose(fd);
+    if (code < 0) {
+      notifyErrorWithCode(`Failed to close directory ${dirName}`, code)
+    }
 
     const byName = (lhs: Entry, rhs: Entry) => {
       const lhsLower = lhs.name.toLowerCase()
@@ -234,7 +252,7 @@ export const useMcfs = () => {
   //   if (!fileData)
   //     return
   //
-  //   writeFile(toPath, fileData)
+  //   writeFile({ path: toPath, data: fileData })
   // }
   //
   // const moveFile = (fromRoot: string, fromEntry: Entry, toPath: string) => {
@@ -242,27 +260,102 @@ export const useMcfs = () => {
   //   deleteEntry(fromRoot, fromEntry)
   // }
 
-  const writeFile = (filePath: string, fileData: Uint8Array) => {
-    const fd = mcfs.open(filePath, sceMcFileAttrFile | sceMcFileCreateFile | sceMcFileAttrWriteable)
+  const writeFile = (opts: { path: string, data: Uint8Array }) => {
+    const fd = mcfs.open(opts.path, sceMcFileAttrFile | sceMcFileCreateFile | sceMcFileAttrWriteable)
     if (fd < 0) {
-      notifyErrorWithCode(`Failed to open file ${filePath} for writing`, fd)
+      notifyErrorWithCode(`Failed to open file ${opts.path} for writing`, fd)
       return
     }
 
-    const written = mcfs.write(fd, fileData)
+    const written = mcfs.write(fd, opts.data)
     if (written < 0) {
-      notifyErrorWithCode(`Failed to write file ${filePath}`, written)
-    } else if (written !== fileData.length) {
-      notifyError({ message: `Incomplete write, written ${written} bytes out of ${fileData.length} in ${filePath}` })
+      notifyErrorWithCode(`Failed to write file ${opts.path}`, written)
+      // fallthrough to close the file
+    } else if (written !== opts.data.length) {
+      notifyError({ message: `Incomplete write, written ${written} bytes out of ${opts.data.length} in ${opts.path}` })
+      // fallthrough to close the file
     }
-    // fallthrough to close the file
 
     const code = mcfs.close(fd)
     if (code !== sceMcResSucceed) {
-      notifyErrorWithCode(`Failed to close file ${filePath} after writing`, code)
+      notifyErrorWithCode(`Failed to close file ${opts.path} after writing`, code)
     }
 
     state.hasUnsavedChanges = true
+  }
+
+  const setAttributes = (opts: {
+    path: string,
+    attributes?: number,
+    created?: McStDateTime,
+    modified?: McStDateTime,
+  }) => {
+    let flags= 0;
+    if (opts.attributes !== undefined)
+      flags |= mcFileUpdateAttrMode
+    if (opts.created)
+      flags |= mcFileUpdateAttrCtime
+    if (opts.modified)
+      flags |= mcFileUpdateAttrMtime
+
+    if (flags) {
+      const info: McIoStat = {
+        mode: opts.attributes || 0,
+        attr: 0,
+        size: 0,
+        ctime: opts.created || EMPTY_DATE,
+        mtime: opts.modified || EMPTY_DATE,
+      }
+
+      const code = mcfs.setInfo(opts.path, info, '', flags);
+      if (code !== sceMcResSucceed) {
+        notifyErrorWithCode(`Failed to set attributes for ${opts.path}`, code)
+      }
+    }
+  }
+
+  const importDirectoryFromPsu = (opts: { psu: Psu, overwrite: boolean }) => {
+    const dirPath = joinPath('/', opts.psu.directory.name)
+    const dirExists = checkEntryExistence(mcfs, dirPath)
+    createDirectory({ path: dirPath, existsOk: true })
+
+    for (const entry of opts.psu.entries) {
+      const filePath = joinPath(dirPath, entry.name)
+      const exists = checkEntryExistence(mcfs, filePath)
+      if (exists === undefined)
+        return
+
+      if (exists) {
+        if (!opts.overwrite)
+          continue
+
+        const code = mcfs.remove(filePath)
+        if (code !== sceMcResSucceed) {
+          notifyErrorWithCode(`Failed to remove file ${filePath}`, code)
+        }
+      }
+
+      writeFile({
+        path: filePath,
+        data: entry.contents,
+      })
+
+      setAttributes({
+        path: filePath,
+        attributes: entry.stat.mode,
+        created: entry.stat.ctime,
+        modified: entry.stat.mtime,
+      })
+    }
+
+    if (!dirExists || (dirExists && opts.overwrite)) {
+      setAttributes({
+        path: dirPath,
+        attributes: opts.psu.directory.stat.mode,
+        created: opts.psu.directory.stat.ctime,
+        modified: opts.psu.directory.stat.mtime,
+      })
+    }
   }
 
   const renameEntry = (root: string, entry: Entry, newName: string) => {
@@ -273,31 +366,35 @@ export const useMcfs = () => {
     }
 
     const filePath = joinPath(root, entry.name)
-    const fd = mcfs.open(filePath, isFileEntry(entry) ? sceMcFileAttrFile : sceMcFileAttrSubdir)
-    if (fd < 0) {
-      notifyErrorWithCode(`Failed to open ${filePath} for renaming`, fd)
-      return
-    }
-
-    let code = mcfs.setInfo(fd, entry.stat, newName, sceMcFileAttrFile)
+    const code = mcfs.setInfo(filePath, entry.stat, newName, sceMcFileAttrFile)
     if (code !== sceMcResSucceed) {
       notifyErrorWithCode(`Failed to rename ${filePath}`, code)
-    }
-
-    code = mcfs.close(fd)
-    if (code !== sceMcResSucceed) {
-      notifyErrorWithCode(`Failed to close ${filePath} after renaming`, code)
     }
 
     state.hasUnsavedChanges = true
   }
 
   const deleteDirectoryRecursive = (dirPath: string) => {
-    const entries = readDirectoryFiltered(mcfs, dirPath)
+    const fd = mcfs.dopen(dirPath)
+    if (fd < 0) {
+      notifyErrorWithCode(`Failed to open directory ${dirPath}`, fd)
+      return
+    }
+
+    const entries = []
+    for (const entry of readDirectoryFiltered(mcfs, fd)) {
+      entries.push(entry)
+    }
+
+    let code = mcfs.dclose(fd);
+    if (code < 0) {
+      notifyErrorWithCode(`Failed to close directory ${dirPath}`, code)
+      return
+    }
 
     entries.forEach(entry => deleteEntry(dirPath, entry))
 
-    const code = mcfs.rmDir(dirPath)
+    code = mcfs.rmDir(dirPath)
     if (code !== sceMcResSucceed) {
       notifyErrorWithCode(`Failed to remove directory ${dirPath}`, code)
     }
@@ -337,6 +434,7 @@ export const useMcfs = () => {
     readDirectory: readDirectoryFilteredSorted,
     readFile,
     writeFile,
+    importDirectoryFromPsu,
     renameEntry,
     deleteEntry,
     state,

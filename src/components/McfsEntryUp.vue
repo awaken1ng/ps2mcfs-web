@@ -1,9 +1,7 @@
 <template>
-  <!-- :clickable="!path.isRoot" -->
-
   <q-item
     v-if="isLoaded && !isLoading"
-    class="non-selectable"
+    class="entry non-selectable"
     clickable
     :manual-focus="path.isRoot"
     :style="cursorOverride"
@@ -55,3 +53,7 @@ const cursorOverride = computed(
   () => ({ cursor: path.isRoot ? 'default !important' : '' })
 )
 </script>
+
+<style lang="css" scoped>
+@import '../css/McfsEntryItem.css';
+</style>

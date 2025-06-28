@@ -1,0 +1,32 @@
+/*
+  zero the outer padding, and instead pad inside,
+  that way we can have a click event on the icon section
+  not fall through the padding gap and trigger click on an entry
+*/
+.entry { padding: 0; }
+.entry :deep(.q-item__section--avatar) { padding-left: 16px; }
+.entry :deep(.q-item__section--side) { padding-right: 16px; }
+
+/* remove the extra gap between labels */
+.q-item__label + .q-item__label { margin-top: 0; }
+
+.entry .text-break { word-break: break-all; }
+
+/* hide the side part on mobile */
+.entry .hide-on-mobile { display: none; }
+
+/* fix the padding */
+.entry .side.attributes-and-date { padding-right: 8px; }
+.entry .side.menu { padding: 8px 8px 8px 0px; }
+
+/* un-gray the button */
+.entry .side.menu { color: unset; }
+
+@media (min-width: 500px) {
+  /* reset items height on non-mobile */
+  .entries > .q-item { min-height: 48px; }
+  .entries > .q-item.double-height { min-height: 96px; }
+
+  .entry .hide-on-mobile { display: flex; }
+  .entry .hide-on-desktop { display: none; }
+}

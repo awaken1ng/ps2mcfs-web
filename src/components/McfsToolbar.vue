@@ -1,21 +1,52 @@
 <template>
-  <q-toolbar class="wrap toolbar-primary">
-    <q-btn
-      flat no-caps sicon="sym_s_select_all" label="New" data-cy="toolbar-new"
-      @click="newMemoryCard"
-    />
-    <q-btn
-      flat no-caps sicon="sym_s_select_all" label="Open" data-cy="toolbar-open"
-      @click="openMemoryCardFromFile"
-    />
-    <q-btn
-      flat no-caps sicon="sym_s_select_all" label="Save as" data-cy="toolbar-saveAs"
-      @click="saveMemoryCardAs" :disable="!isLoaded"
-    />
-    <q-btn
-      flat no-caps sicon="sym_s_select_all" label="Close" data-cy="toolbar-close"
-      @click="closeMemoryCard" :disable="!isLoaded"
-    />
+  <q-toolbar class="justify-center">
+    <!-- toolbar uses no-wrap, use an inner container that can be wrapped instead -->
+    <!-- and split buttons further, so that when wrap happens, it nicely splits in half -->
+    <div class="row wrap justify-center">
+      <div class="row wrap justify-center">
+        <q-btn
+          flat no-caps no-wrap icon="sym_s_note_add" label="New" data-cy="toolbar-new"
+          @click="newMemoryCard"
+        />
+        <q-btn
+          flat no-caps no-wrap icon="sym_s_file_open" label="Open" data-cy="toolbar-open"
+          @click="openMemoryCardFromFile"
+        />
+      </div>
+
+      <div class="row wrap justify-center">
+        <q-btn
+          flat no-caps no-wrap icon="sym_s_file_save" label="Save as" data-cy="toolbar-saveAs"
+          @click="saveMemoryCardAs" :disable="!isLoaded"
+        />
+        <q-btn
+          flat no-caps no-wrap icon="sym_s_close" label="Close" data-cy="toolbar-close"
+          @click="closeMemoryCard" :disable="!isLoaded"
+        />
+      </div>
+    </div>
+  </q-toolbar>
+
+  <q-toolbar class="justify-center">
+    <div class="row wrap justify-center">
+      <q-btn
+        flat no-caps no-wrap icon="sym_s_note_stack_add" label="Add files" data-cy="toolbar-addFile"
+        @click="openAddFileDialogue" :disabled="!isLoaded"
+      />
+      <q-btn
+        flat no-caps no-wrap
+        icon="sym_s_place_item"
+        label="Import .psu"
+        @click="openImportPsuDialog"
+        :disable="!isLoaded"
+        data-cy="toolbar-importPsu"
+      />
+      <q-btn
+        flat no-caps no-wrap icon="sym_s_create_new_folder" label="Create new directory" data-cy="toolbar-createDirectory"
+        @click="openMakeDirectoryDialogue" :disabled="!isLoaded"
+      />
+    </div>
+
   </q-toolbar>
 
   <q-toolbar class="toolbar-secondary">
@@ -24,22 +55,14 @@
     </div>
     <q-skeleton v-else animation="none" width="10rem" data-cy="file-name-skeleton" />
 
-    <div class="row no-wrap justify-center">
+    <div class="row wrap justify-center">
       <q-btn
-        flat no-caps no-wrap icon="sym_s_note_add" title="Add file" data-cy="toolbar-addFile"
-        @click="openAddFileDialogue" :disabled="!isLoaded"
-      />
-      <q-btn
-        flat no-caps no-wrap icon="sym_s_create_new_folder" title="Create new directory" data-cy="toolbar-createDirectory"
-        @click="openMakeDirectoryDialogue" :disabled="!isLoaded"
-      />
-      <q-btn
-        flat no-caps no-wrap icon="sym_s_delete" title="Delete" data-cy="toolbar-delete"
+        flat no-caps no-wrap icon="sym_s_delete" label="Delete" data-cy="toolbar-delete"
         @click="deleteSelectedEntries" :disabled="entryList.isSelectedNone"
       />
       <q-btn
         flat no-caps no-wrap
-        :icon="selectOrDeselectIcon" :title="selectOrDeselectTitle" data-cy="toolbar-toggleSelect"
+        :icon="selectOrDeselectIcon" :label="selectOrDeselectTitle" data-cy="toolbar-toggleSelect"
         @click="entryList.toggleSelectionAll" :disabled="!isLoaded || !entries.length"
       />
     </div>
@@ -56,6 +79,15 @@
     @add-to-card="addFilesToCard"
   />
 
+  <DialoguePsuImport
+    v-model="isImportPsuDialogueOpen"
+    :file-name="psuName"
+    :psu="psu"
+    :availableSpace="availableSpace"
+    :is-writing="isWriting"
+    @import="importSelectedPsu"
+  />
+
   <DialogueDirectoryCreate
     v-model="isMakeDirectoryDialogueOpen"
     @make-directory="createNewDirectory"
@@ -63,8 +95,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import DialogueFilesAdd, { type FileToAdd } from 'components/DialogueFilesAdd.vue'
+import DialoguePsuImport from 'components/DialoguePsuImport.vue'
 import DialogueDirectoryCreate from 'components/DialogueDirectoryCreate.vue'
 import { isEccImage, isNonEccImage, useMcfs } from 'lib/ps2mc'
 import { dialogNoTransition, canDiscardUnsavedChanges, notifyWarning, pluralizeItems } from 'lib/utils'
@@ -73,6 +106,7 @@ import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
 import { useDropZone, useFileDialog } from '@vueuse/core'
+import { Psu, readPsu } from 'src/lib/psu'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
@@ -211,7 +245,7 @@ const addFilesToCard = async () => {
 
     const filePath = path.join(file.name)
     const contents = await file.file.bytes()
-    mcfs.writeFile(filePath, contents)
+    mcfs.writeFile({ path: filePath, data: contents })
   }
 
   entryList.refresh()
@@ -257,6 +291,62 @@ useDropZone(document, { onDrop, multiple: true, preventDefaultForUnhandled: true
 
 // endregion: add file
 
+// region: psu import
+
+const openPsuFileDialog = useFileDialog({ multiple: false, reset: true })
+const isImportPsuDialogueOpen = ref(false)
+const psu = ref<Psu>()
+const psuName = ref('')
+
+const openImportPsuDialog = () => {
+  openPsuFileDialog.open()
+}
+
+openPsuFileDialog.onChange(async (files) => {
+  if (!files || files.length !== 1)
+    return
+
+  const file = files.item(0)!
+  const contents = await file.bytes()
+
+  psuName.value = file.name
+  psu.value = readPsu(contents)
+  if (!psu.value)
+    return
+
+  const filesSize = psu.value.entries.reduce((total, entry) => total + entry.stat.size, 0)
+  if (filesSize > availableSpace.value) {
+    notifyWarning({ message: `Not enough free space on the card` })
+    return
+  }
+
+  isImportPsuDialogueOpen.value = true
+})
+
+watchEffect(() => {
+  if (isImportPsuDialogueOpen.value)
+    return
+
+  // unset .psu when closing the import dialog
+  psu.value = undefined
+})
+
+const importSelectedPsu = (overwrite: boolean) => {
+  if (!psu.value)
+    return
+
+  try {
+    isWriting.value = true
+    mcfs.importDirectoryFromPsu({ psu: psu.value, overwrite })
+    if (path.isRoot) entryList.refresh()
+  } finally {
+    isImportPsuDialogueOpen.value = false
+    isWriting.value = false
+  }
+}
+
+// endregion: psu import
+
 // region: mkdir
 
 const isMakeDirectoryDialogueOpen = ref(false)
@@ -267,7 +357,7 @@ const openMakeDirectoryDialogue = () => {
 
 const createNewDirectory = (dirName: string) => {
   const dirPath = path.join(dirName)
-  mcfs.createDirectory(dirPath)
+  mcfs.createDirectory({ path: dirPath, existsOk: false })
   entryList.refresh()
 }
 
@@ -301,8 +391,7 @@ const selectOrDeselectTitle = computed(() => entryList.isSelectedAll ? 'Deselect
 </script>
 
 <style lang="css" scoped>
-.toolbar-primary,
-.toolbar-secondary {
+.q-toolbar {
   padding: 6px 12px;
 }
 
@@ -321,9 +410,6 @@ const selectOrDeselectTitle = computed(() => entryList.isSelectedAll ? 'Deselect
 .toolbar-secondary .file-name {
   word-break: break-all;
 }
-
-.toolbar-primary .loading-spinner { margin: 12px 21px; }
-.toolbar-secondary .toolbar-spacer { padding: 6px; }
 
 @media (min-width: 500px) {
   .toolbar-secondary { flex-direction: row; }

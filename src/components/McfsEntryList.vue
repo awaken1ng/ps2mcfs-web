@@ -31,55 +31,18 @@
       <div class="text-subtitle2">No items</div>
     </q-item>
 
-    <q-item
+    <McfsEntryItem
       v-else
-      class="entry non-selectable"
       v-for="entry in entries"
-      :ref="(ref) => setEntryRef(entry, ref)"
       :key="path.join(entry.name)"
+      :ref="(ref) => setEntryRef(entry, ref)"
+      :entry="entry"
       clickable
-      @contextmenu.prevent="openEntryMenu(entry)"
-      :focused="entryList.isSelected(entry)"
-      :active="entryList.isSelected(entry)"
-      v-ripple
-      data-cy="entry"
-    >
-      <q-item-section
-        avatar data-cy="entry-icon"
-        @click.stop="toggleSelection(entry)"
-      >
-        <McfsEntryIcon :entry="entry" />
-      </q-item-section>
-
-      <q-item-section class="middle" @click="openDirectory(entry)">
-        <q-item-label data-cy="entry-name">
-          {{ entry.name }}
-        </q-item-label>
-
-        <q-item-label caption class="size-and-attributes">
-          <span>{{ formatEntrySize(entry) }}</span>
-          <McfsEntryAttributes class="attributes" :entry="entry"/>
-        </q-item-label>
-
-        <q-item-label caption class="date">
-          <span :title="formatDateLong(entry.stat.mtime)">
-            Modified: {{ formatDateShort(entry.stat.mtime) }}
-          </span>
-        </q-item-label>
-
-      </q-item-section>
-
-      <q-item-section side class="side attributes-and-date" @click="openDirectory(entry)">
-        <q-item-label caption class="column items-end">
-          <McfsEntryAttributes :entry="entry"/>
-          <span :title="formatDateLong(entry.stat.mtime)">Modified: {{ formatDateShort(entry.stat.mtime) }}</span>
-        </q-item-label>
-      </q-item-section>
-
-      <q-item-section side class="side options" @click.stop="openEntryMenu(entry)" data-cy="entry-menu-open">
-        <q-btn size="12px" flat dense round icon="sym_s_more_vert" />
-      </q-item-section>
-    </q-item>
+      menu
+      @toggle-selection="toggleSelection(entry)"
+      @open-directory="openDirectory(entry)"
+      @open-menu="openEntryMenu(entry)"
+    />
   </q-list>
 
   <McfsEntryMenu
@@ -106,14 +69,12 @@
 <script setup lang="ts">
 import { ComponentPublicInstance, nextTick, ref, useTemplateRef, watch } from 'vue'
 import McfsEntryUp from 'components/McfsEntryUp.vue'
-import McfsEntryIcon from 'components/McfsEntryIcon.vue'
-import McfsEntryAttributes from 'components/McfsEntryAttributes.vue'
+import McfsEntryItem from 'components/McfsEntryItem.vue'
 import McfsEntryMenu from 'components/McfsEntryMenu.vue'
 import DialogueEntryRename from 'components/DialogueEntryRename.vue'
-import { type Entry, isDirectoryEntry, isFileEntry, useMcfs } from 'lib/ps2mc'
-import { McStDateTime } from 'lib/mcfs'
+import { type Entry, isDirectoryEntry, useMcfs } from 'lib/ps2mc'
 import { useSaveFileDialog } from 'lib/file'
-import { dialogNoTransition, formatBytes, onClickOutside, pluralizeItems } from 'lib/utils'
+import { dialogNoTransition, onClickOutside } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
@@ -299,33 +260,6 @@ const deleteEntryFromMenu = (entry: Entry) => {
 }
 
 // endregion: delete
-
-const itemsInDirectory = (entry: Entry) => {
-  const n = isDirectoryEntry(entry)
-    ? entry.stat.size - 2 // each directory has `.` and `..` items, don't count them
-    : 0;
-
-  return pluralizeItems(n)
-}
-
-const formatEntrySize = (entry: Entry) =>
-  isFileEntry(entry) ? formatBytes(entry.stat.size) : itemsInDirectory(entry)
-
-const formatDateShort = (time: McStDateTime) => {
-  const yyyy = time.year
-  const mm = time.month.toString().padStart(2, '0')
-  const dd = time.day.toString().padStart(2, '0')
-
-  return `${yyyy}-${mm}-${dd}`
-}
-
-const formatDateLong = (time: McStDateTime) => {
-  const hh = time.hour.toString().padStart(2, '0')
-  const mm = time.min.toString().padStart(2, '0')
-  const ss = time.sec.toString().padStart(2, '0')
-
-  return `${formatDateShort(time)} ${hh}:${mm}:${ss}`
-}
 </script>
 
 <style lang="css" scoped>
@@ -335,50 +269,9 @@ const formatDateLong = (time: McStDateTime) => {
 .entries > .q-item { min-height: 56px; }
 .entries > .q-item.double-height { min-height: 112px; }
 
-/*
-  zero the outer padding, and instead pad inside,
-  that way we can have a click event on the icon section
-  not fall through the padding gap and trigger click on an entry
-*/
-.entry { padding: 0; }
-.entry :deep(.q-item__section--avatar) { padding-left: 16px; }
-.entry :deep(.q-item__section--side) { padding-right: 16px; }
-
-/* remove the extra gap between labels */
-.q-item__label + .q-item__label { margin-top: 0; }
-
-/* allow word breaking the name */
-.entry .middle { word-break: break-all; }
-
-/* hide the side part on mobile */
-.entry .side.attributes-and-date { display: none; }
-
-/* fix the padding */
-.entry .side.attributes-and-date { padding-right: 0; }
-.entry .side.options { padding: 8px; }
-
-/* un-gray the button */
-.entry .side.options { color: unset; }
-
-/* space size and attributes */
-.entry .middle .size-and-attributes {
-  display: flex;
-  flex-direction: row;
-  gap: 0.5rem;
-}
-
 @media (min-width: 500px) {
   /* reset items height on non-mobile */
   .entries > .q-item { min-height: 48px; }
   .entries > .q-item.double-height { min-height: 96px; }
-
-  .entry .side.attributes-and-date,
-  .entry .side.options {
-    display: flex;
-  }
-
-  .entry .middle .attributes, .entry .middle .date {
-    display: none;
-  }
 }
 </style>

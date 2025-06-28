@@ -13,7 +13,7 @@
   >
     <q-item class="entry">
       <q-item-section avatar>
-        <McfsEntryIcon :entry="entry" />
+        <McfsEntryIcon :entry="entry" :selection-icons="false" />
       </q-item-section>
 
       <q-item-section>
