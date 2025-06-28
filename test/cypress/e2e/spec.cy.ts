@@ -34,8 +34,13 @@ const getEntry = (name: string) => {
   return getEntryName(name).parents('[data-cy=entry]')
 }
 
-const isEntryNotSelected = (name: string) => {
-  cy.log('is entry not selected ${name}')
+const expectEntryToBeSelected = (name: string) => {
+  cy.log(`entry ${name} should be selected`)
+  getEntry(name).should('have.class', 'q-item--active')
+}
+
+const expectEntryToBeNotSelected = (name: string) => {
+  cy.log(`entry ${name} should not be selected`)
   getEntry(name).should('not.have.class', 'q-item--active')
 }
 
@@ -178,6 +183,16 @@ describe('Main', () => {
     deleteFromMenu(name2)
     cy.contains('No items')
     expectMenuToBeClosed()
+
+    // should delete selected directories
+    createNewDirectory(name1)
+    createNewDirectory(name2)
+    createNewDirectory(name3)
+    toggleEntrySelection(name1)
+    toggleEntrySelection(name2)
+    deleteFromMenu(name1)
+    expectMenuToBeClosed()
+    getEntryName(name3).should('exist')
   })
 
   it('renames directory', () => {
@@ -227,7 +242,7 @@ describe('Main', () => {
     // should close when toggling selection on entry
     openEntryMenu(name1)
     toggleEntrySelection(name1)
-    isEntryNotSelected(name1)
+    expectEntryToBeNotSelected(name1)
     expectMenuToBeClosed()
 
     // should close when clicking on another entry
@@ -238,8 +253,16 @@ describe('Main', () => {
     // should close when toggling selection on another entry
     openEntryMenu(name1)
     toggleEntrySelection(name2)
-    isEntryNotSelected(name2)
+    expectEntryToBeNotSelected(name2)
     expectMenuToBeClosed()
+
+    // should deselect entries when opening a non-selected entry
+    toggleEntrySelection(name1)
+    openEntryMenu(name1)
+    expectEntryToBeSelected(name1)
+    openEntryMenu(name2)
+    expectEntryToBeNotSelected(name1)
+    getEntry(name2).click()
 
     // right click should open menu
     getEntry(name1).rightclick()
