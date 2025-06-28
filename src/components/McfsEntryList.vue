@@ -75,7 +75,7 @@ import McfsEntryMenu from 'components/McfsEntryMenu.vue'
 import DialogueEntryRename from 'components/DialogueEntryRename.vue'
 import { type Entry, isDirectoryEntry, useMcfs } from 'lib/ps2mc'
 import { useSaveFileDialog } from 'lib/file'
-import { dialogNoTransition, dialogSaveAs, joinPath, onClickOutside } from 'lib/utils'
+import { dialogNoTransition, dialogSaveAs, joinPath, onClickOutside, pluralizeItems } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
@@ -139,9 +139,16 @@ const setEntryRef = (entry: Entry, ref: Element | ComponentPublicInstance | null
 const openEntryMenu = (entry: Entry) => {
   const target = entryToElement.value.get(entry)
   const targetChanged = menuTarget.value !== target
+
+  // when trying to open menu on the same entry, with already opened menu, close it instead
   if (!targetChanged && isMenuOpen.value) {
     closeEntryMenu()
     return
+  }
+
+  // when opening menu on unselected entry, deselect everything
+  if (!entryList.selected.has(entry)) {
+    entryList.deselectAll()
   }
 
   menuTarget.value = target
@@ -273,14 +280,25 @@ const renameEntryFromMenu = (newName: string) => {
 
 // region: delete
 
-const deleteEntryFromMenu = (entry: Entry) => {
+const deleteEntryFromMenu = (entries: Entry[]) => {
   closeEntryMenu()
+
+  if (!entries.length)
+    return
+
+  let message: string
+  if (entries.length === 1) {
+    message = `Delete ${entries[0]!.name}?`
+  } else {
+    message = `Delete ${pluralizeItems(entries.length)}?`
+  }
+
   dialogNoTransition({
     title: 'Delete',
-    message: `Delete ${entry.name}?`,
+    message,
     cancel: true,
   }).onOk(() => {
-    mcfs.deleteEntry(path.current, entry)
+    entries.forEach(entry => mcfs.deleteEntry(path.current, entry))
     entryList.refresh()
   })
 }

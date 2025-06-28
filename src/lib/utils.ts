@@ -46,13 +46,14 @@ export const formatBytes = (bytes: number) => {
   }
 }
 
-export const pluralizeItems = (n: number) => {
+export const itemsForm = (n: number) => {
   const cardinalRules = new Intl.PluralRules("en-US")
   const category = cardinalRules.select(n)
   const form = category === 'one' ? 'item' : 'items'
-
-  return `${n} ${form}`
+  return form
 }
+
+export const pluralizeItems = (n: number) => `${n} ${itemsForm(n)}`
 
 export const joinPath = (a: string, b: string) => {
   if (a[a.length - 1] !== '/')

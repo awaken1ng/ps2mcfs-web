@@ -57,10 +57,6 @@
 
     <div class="row wrap justify-center">
       <q-btn
-        flat no-caps no-wrap icon="sym_s_delete" label="Delete" data-cy="toolbar-delete"
-        @click="deleteSelectedEntries" :disabled="entryList.isSelectedNone"
-      />
-      <q-btn
         flat no-caps no-wrap
         :icon="selectOrDeselectIcon" :label="selectOrDeselectTitle" data-cy="toolbar-toggleSelect"
         @click="entryList.toggleSelectionAll" :disabled="!isLoaded || !entries.length"
@@ -101,8 +97,7 @@ import DialoguePsuImport from 'components/DialoguePsuImport.vue'
 import DialogueDirectoryCreate from 'components/DialogueDirectoryCreate.vue'
 import { isEccImage, isNonEccImage, useMcfs } from 'lib/ps2mc'
 import {
-  dialogNoTransition, canDiscardUnsavedChanges, dialogSaveAs,
-  notifyWarning, pluralizeItems,
+  canDiscardUnsavedChanges, dialogSaveAs, notifyWarning,
 } from 'lib/utils'
 import { useSaveFileDialog } from 'lib/file'
 import { useEntryListStore } from 'stores/entryList'
@@ -118,7 +113,7 @@ const path = usePathStore()
 const entryList = useEntryListStore()
 
 const { isLoaded, availableSpace, hasUnsavedChanges } = storeToRefs(mcfs.state)
-const { entries, selected } = storeToRefs(entryList)
+const { entries } = storeToRefs(entryList)
 
 const newMemoryCard = async () => {
   if (!await canDiscardUnsavedChanges('Create new memory card?'))
@@ -362,28 +357,6 @@ const createNewDirectory = (dirName: string) => {
 }
 
 // endregion: mkdir
-
-const deleteSelectedEntries = () => {
-  if (!selected.value.size)
-    return
-
-  let message: string
-  if (selected.value.size === 1) {
-    const selectedEntry = selected.value.entries().next().value![0]
-    message = `Delete ${selectedEntry.name}?`
-  } else {
-    message = `Delete ${pluralizeItems(selected.value.size)}?`
-  }
-
-  dialogNoTransition({
-    title: 'Delete',
-    message,
-    cancel: true,
-  }).onOk(() => {
-    selected.value.forEach(entry => mcfs.deleteEntry(path.current, entry))
-    entryList.refresh()
-  })
-}
 
 const selectOrDeselectIcon = computed(() => entryList.isSelectedAll ? 'sym_s_deselect' : 'sym_s_select_all')
 
