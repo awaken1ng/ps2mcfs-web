@@ -130,7 +130,7 @@ export const useMcfs = () => {
 
       const cardSpecs = readCardSpecs(mc)
 
-      if (!isEccImage(cardSpecs.cardSize))
+      if (!isEccImage(mc.length))
         cardSpecs.cardFlags ^= CF_USE_ECC // remove ECC bit
 
       mcfs.setCardBuffer(mc)
