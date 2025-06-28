@@ -6,19 +6,22 @@
 import { Entry, isDirectoryEntry } from 'lib/ps2mc'
 import { ICON_FILE, ICON_FILE_SELECTED, ICON_FOLDER, ICON_FOLDER_SELECTED } from 'lib/icon'
 import { useEntryListStore } from 'stores/entryList'
+import { computed } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   entry: Entry,
   selectionIcons: boolean,
 }>()
 
 const entryList = useEntryListStore()
 
+const showSelectionIcon = computed(() => props.selectionIcons && entryList.isSelected(props.entry))
+
 const icon = (entry: Entry) => {
   if (isDirectoryEntry(entry)) {
-    return entryList.isSelected(entry) ? ICON_FOLDER_SELECTED : ICON_FOLDER
+    return showSelectionIcon.value ? ICON_FOLDER_SELECTED : ICON_FOLDER
   } else {
-    return entryList.isSelected(entry) ? ICON_FILE_SELECTED : ICON_FILE
+    return showSelectionIcon.value ? ICON_FILE_SELECTED : ICON_FILE
   }
 }
 </script>
