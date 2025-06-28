@@ -1,4 +1,4 @@
-import { type McEntryInfo } from 'lib/mcfs'
+import { type McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 import {
   isEntryReadable, isEntryWriteable, isEntryExecutale, isEntryProtected,
   isEntryHidden, isPs1Save, isPocketStationSave,

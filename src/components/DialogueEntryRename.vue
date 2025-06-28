@@ -45,12 +45,13 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MAX_NAME_LENGTH, isEntryNameLegal, isFileEntry, Entry } from 'lib/ps2mc'
+import { MAX_NAME_LENGTH, isEntryNameLegal, isFileEntry } from 'lib/ps2mc'
 import { useEntryListStore } from 'stores/entryList'
+import { type McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 
 const props = defineProps<{
   modelValue: boolean,
-  entry: Entry | undefined,
+  entry: McEntryInfo | undefined,
 }>()
 
 const emit = defineEmits<{

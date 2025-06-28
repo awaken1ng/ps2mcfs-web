@@ -13,11 +13,9 @@ import { McEntryInfo, type Module, sceMcFileAttrReadable, sceMcFileAttrWriteable
   McIoStat,
   sceMcFile0400,
   sceMcFileAttrExists,
-} from './mcfs'
+} from 'ps2mcfs-wasm/mcfs'
 import { useMcfsStore } from 'stores/mcfs'
 import { alignTo, Psu, serializePsuEntry } from './psu'
-
-export type Entry = McEntryInfo
 
 export const MAX_NAME_LENGTH = 31
 
@@ -188,8 +186,8 @@ export const useMcfs = () => {
       return []
     }
 
-    const files: Entry[] = []
-    const directories: Entry[] = []
+    const files: McEntryInfo[] = []
+    const directories: McEntryInfo[] = []
     for (const item of readDirectoryFiltered(mcfs, fd)) {
       if (isFileEntry(item)) {
         files.push(item)
@@ -203,7 +201,7 @@ export const useMcfs = () => {
       notifyErrorWithCode(`Failed to close directory ${dirName}`, code)
     }
 
-    const byName = (lhs: Entry, rhs: Entry) => {
+    const byName = (lhs: McEntryInfo, rhs: McEntryInfo) => {
       const lhsLower = lhs.name.toLowerCase()
       const rhsLower = rhs.name.toLowerCase()
 
@@ -223,7 +221,7 @@ export const useMcfs = () => {
     return directories.concat(files)
   }
 
-  const readFile = (root: string, entry: Entry) => {
+  const readFile = (root: string, entry: McEntryInfo) => {
     const filePath = joinPath(root, entry.name)
     const fd = mcfs.open(filePath, sceMcFileAttrFile | sceMcFileAttrReadable)
     if (fd < 0) {
@@ -248,7 +246,7 @@ export const useMcfs = () => {
     }
   }
 
-  // const copyFile = (fromRoot: string, fromEntry: Entry, toPath: string) => {
+  // const copyFile = (fromRoot: string, fromEntry: McEntryInfo, toPath: string) => {
   //   const fileData = readFile(fromRoot, fromEntry)
   //   if (!fileData)
   //     return
@@ -256,7 +254,7 @@ export const useMcfs = () => {
   //   writeFile({ path: toPath, data: fileData })
   // }
   //
-  // const moveFile = (fromRoot: string, fromEntry: Entry, toPath: string) => {
+  // const moveFile = (fromRoot: string, fromEntry: McEntryInfo, toPath: string) => {
   //   copyFile(fromRoot, fromEntry, toPath)
   //   deleteEntry(fromRoot, fromEntry)
   // }
@@ -467,7 +465,7 @@ export const useMcfs = () => {
     return psu
   }
 
-  const renameEntry = (root: string, entry: Entry, newName: string) => {
+  const renameEntry = (root: string, entry: McEntryInfo, newName: string) => {
     const newPath = joinPath(root, newName)
     if (checkEntryExistence(mcfs, newPath) !== false) {
       notifyError({ message: `Failed to rename, ${newName} already exists` })
@@ -509,7 +507,7 @@ export const useMcfs = () => {
     }
   }
 
-  const deleteEntry = (root: string, entry: Entry) => {
+  const deleteEntry = (root: string, entry: McEntryInfo) => {
     const fullPath = joinPath(root, entry.name)
 
     if (isFileEntry(entry)) {
@@ -551,15 +549,15 @@ export const useMcfs = () => {
   }
 }
 
-export const isEntryReadable = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrReadable)
-export const isEntryWriteable = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrWriteable)
-export const isEntryExecutale = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrExecutable)
-export const isEntryProtected = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrDupProhibit)
-export const isEntryHidden = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrHidden)
-export const isFileEntry = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrFile)
-export const isDirectoryEntry = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrSubdir)
-export const isPocketStationSave = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrPDAExec)
-export const isPs1Save = (entry: Entry) => Boolean(entry.stat.mode & sceMcFileAttrPS1)
+export const isEntryReadable = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrReadable)
+export const isEntryWriteable = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrWriteable)
+export const isEntryExecutale = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrExecutable)
+export const isEntryProtected = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrDupProhibit)
+export const isEntryHidden = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrHidden)
+export const isFileEntry = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrFile)
+export const isDirectoryEntry = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrSubdir)
+export const isPocketStationSave = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrPDAExec)
+export const isPs1Save = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMcFileAttrPS1)
 
 export const isNonEccImage = (cardSize: number) => cardSize % 1024 === 0
 export const isEccImage = (cardSize: number) => cardSize % 1056 === 0

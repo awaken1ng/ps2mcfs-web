@@ -86,7 +86,7 @@ import { QMenu } from 'quasar'
 import { useEntryListStore } from 'stores/entryList'
 import { itemsForm } from 'lib/utils'
 import { usePathStore } from 'stores/path'
-import { McEntryInfo } from 'lib/mcfs'
+import { McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 
 const props = defineProps<{
   modelValue: boolean,

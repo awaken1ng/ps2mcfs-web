@@ -11,6 +11,7 @@
     "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
+    "build:wasm": "emcmake cmake src-wasm -B src-wasm/build && cmake --build src-wasm/build --target mcfs",
     "postinstall": "quasar prepare",
     "test:e2e": "cross-env NODE_ENV=test TS_NODE_PROJECT=test/cypress/tsconfig.json start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress open --e2e\"",
     "test:e2e:ci": "cross-env NODE_ENV=test TS_NODE_PROJECT=test/cypress/tsconfig.json start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress run --e2e\"",

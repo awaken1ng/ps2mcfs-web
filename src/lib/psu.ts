@@ -1,4 +1,4 @@
-import { McEntry, McEntryInfo } from "./mcfs"
+import { McEntry, McEntryInfo } from "ps2mcfs-wasm/mcfs"
 import { isDirectoryEntry, isFileEntry, MAX_NAME_LENGTH } from "./ps2mc"
 import { notifyError, notifyWarning } from "./utils"
 

@@ -69,6 +69,7 @@ export default defineConfig((/* ctx */) => {
       alias: {
         lib: fileURLToPath(new URL('./src/lib', import.meta.url)),
         stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
+        'ps2mcfs-wasm': fileURLToPath(new URL('./src-wasm/build', import.meta.url)),
       },
 
       vitePlugins: [

@@ -1,0 +1,3 @@
+[submodule "src-wasm"]
+	path = src-wasm
+	url = https://github.com/awaken1ng/ps2mcfs-wasm.git

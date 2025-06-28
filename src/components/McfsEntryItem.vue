@@ -53,7 +53,7 @@
 <script lang="ts" setup>
 import McfsEntryIcon from 'components/McfsEntryIcon.vue'
 import McfsEntryAttributes from 'src/components/McfsEntryAttributes'
-import { McEntryInfo, McStDateTime } from 'lib/mcfs'
+import { McEntryInfo, McStDateTime } from 'ps2mcfs-wasm/mcfs'
 import { isDirectoryEntry, isFileEntry } from 'lib/ps2mc'
 import { formatBytes, pluralizeItems } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'

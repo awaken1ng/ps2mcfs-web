@@ -1,28 +1,29 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { computed, readonly, ref } from 'vue'
-import { useMcfs, type Entry  } from 'lib/ps2mc'
+import { useMcfs } from 'lib/ps2mc'
 import { usePathStore } from 'stores/path'
+import { McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 
 const useStore = defineStore('entryList', () => {
-  const entries = ref<Entry[]>([])
+  const entries = ref<McEntryInfo[]>([])
 
-  const set = (v: Entry[]) => entries.value = v
+  const set = (v: McEntryInfo[]) => entries.value = v
 
-  const selected = ref<Set<Entry>>(new Set())
+  const selected = ref<Set<McEntryInfo>>(new Set())
 
   const selectedRo = readonly(selected)
 
-  const isSelected = (entry: Entry) => selected.value.has(entry)
+  const isSelected = (entry: McEntryInfo) => selected.value.has(entry)
 
   const isSelectedAll = computed(() => selected.value.size === entries.value.length)
 
   const isSelectedNone = computed(() => !selected.value.size)
 
-  const deselect = (entry: Entry) => selected.value.delete(entry)
+  const deselect = (entry: McEntryInfo) => selected.value.delete(entry)
 
-  const select = (entry: Entry) => selected.value.add(entry)
+  const select = (entry: McEntryInfo) => selected.value.add(entry)
 
-  const toggleSelection = (entry: Entry) => {
+  const toggleSelection = (entry: McEntryInfo) => {
     if (isSelected(entry)) {
       deselect(entry)
     } else {

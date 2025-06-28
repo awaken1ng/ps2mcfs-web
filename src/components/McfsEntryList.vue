@@ -73,13 +73,14 @@ import McfsEntryUp from 'components/McfsEntryUp.vue'
 import McfsEntryItem from 'components/McfsEntryItem.vue'
 import McfsEntryMenu from 'components/McfsEntryMenu.vue'
 import DialogueEntryRename from 'components/DialogueEntryRename.vue'
-import { type Entry, isDirectoryEntry, useMcfs } from 'lib/ps2mc'
+import { isDirectoryEntry, useMcfs } from 'lib/ps2mc'
 import { useSaveFileDialog } from 'lib/file'
 import { dialogNoTransition, dialogSaveAs, joinPath, onClickOutside, pluralizeItems } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
 import { useClipboard } from '@vueuse/core'
+import { McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 
 const mcfs = useMcfs()
 const path = usePathStore()
@@ -89,7 +90,7 @@ const saveFileDialogue = useSaveFileDialog()
 const { isLoading, isLoaded } = storeToRefs(mcfs.state)
 const { entries } = storeToRefs(entryList)
 
-const toggleSelection = (entry: Entry) => {
+const toggleSelection = (entry: McEntryInfo) => {
   if (isMenuOpen.value) {
     closeEntryMenu()
     return
@@ -98,7 +99,7 @@ const toggleSelection = (entry: Entry) => {
   entryList.toggleSelection(entry)
 }
 
-const openDirectory = (entry: Entry) => {
+const openDirectory = (entry: McEntryInfo) => {
   if (isMenuOpen.value) {
     closeEntryMenu()
     return
@@ -118,17 +119,17 @@ watch(() => path.current, () => {
 
 // region: menu
 
-const entryToElement = ref(new Map<Entry, HTMLDivElement>())
+const entryToElement = ref(new Map<McEntryInfo, HTMLDivElement>())
 
 const menu = useTemplateRef('menu')
 
 const isMenuOpen  = ref(false)
 const menuTarget = ref<HTMLDivElement>()
-const menuEntry = ref<Entry>()
+const menuEntry = ref<McEntryInfo>()
 
 watch(() => entries.value.length, () => entryToElement.value.clear())
 
-const setEntryRef = (entry: Entry, ref: Element | ComponentPublicInstance | null) => {
+const setEntryRef = (entry: McEntryInfo, ref: Element | ComponentPublicInstance | null) => {
   if (!ref)
     return
 
@@ -136,7 +137,7 @@ const setEntryRef = (entry: Entry, ref: Element | ComponentPublicInstance | null
   entryToElement.value.set(entry, el)
 }
 
-const openEntryMenu = (entry: Entry) => {
+const openEntryMenu = (entry: McEntryInfo) => {
   const target = entryToElement.value.get(entry)
   const targetChanged = menuTarget.value !== target
 
@@ -206,7 +207,7 @@ onClickOutside((event: Event) => {
 
 // region: save
 
-const saveFile = (entry: Entry) => {
+const saveFile = (entry: McEntryInfo) => {
   closeEntryMenu()
 
   const contents = mcfs.readFile(path.current, entry)
@@ -220,7 +221,7 @@ const saveFile = (entry: Entry) => {
 
 // region: export .psu
 
-const exportPsu = (entry: Entry) => {
+const exportPsu = (entry: McEntryInfo) => {
   closeEntryMenu()
 
   if (!isDirectoryEntry(entry))
@@ -247,7 +248,7 @@ const exportPsu = (entry: Entry) => {
 
 const clipboard = useClipboard()
 
-const copyEntryName = (entry: Entry) => {
+const copyEntryName = (entry: McEntryInfo) => {
   if (clipboard.isSupported) {
     clipboard.copy(entry.name)
   }
@@ -260,9 +261,9 @@ const copyEntryName = (entry: Entry) => {
 // region: rename
 
 const isRenameEntryDialogueOpen  = ref(false)
-const renamedEntry = ref<Entry>()
+const renamedEntry = ref<McEntryInfo>()
 
-const openRenameEntryDialogue = (entry: Entry) => {
+const openRenameEntryDialogue = (entry: McEntryInfo) => {
   closeEntryMenu()
   renamedEntry.value = entry
   isRenameEntryDialogueOpen.value = true
@@ -280,7 +281,7 @@ const renameEntryFromMenu = (newName: string) => {
 
 // region: delete
 
-const deleteEntryFromMenu = (entries: Entry[]) => {
+const deleteEntryFromMenu = (entries: McEntryInfo[]) => {
   closeEntryMenu()
 
   if (!entries.length)
