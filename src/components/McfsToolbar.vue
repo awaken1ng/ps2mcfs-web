@@ -173,9 +173,11 @@ const saveMemoryCardAs = () => {
   dialogSaveAs({
     title: 'Save memory card',
     fileName: fileName.value,
-    onOk: (fileName) => {
+    onOk: (name) => {
+      fileName.value = name
+
       const buffer = mcfs.saveCardToMemory()
-      saveFileDiloague.saveAsBlob(fileName, buffer)
+      saveFileDiloague.saveAsBlob(name, buffer)
     },
   })
 }
