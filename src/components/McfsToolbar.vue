@@ -100,7 +100,10 @@ import DialogueFilesAdd, { type FileToAdd } from 'components/DialogueFilesAdd.vu
 import DialoguePsuImport from 'components/DialoguePsuImport.vue'
 import DialogueDirectoryCreate from 'components/DialogueDirectoryCreate.vue'
 import { isEccImage, isNonEccImage, useMcfs } from 'lib/ps2mc'
-import { dialogNoTransition, canDiscardUnsavedChanges, notifyWarning, pluralizeItems } from 'lib/utils'
+import {
+  dialogNoTransition, canDiscardUnsavedChanges, dialogSaveAs,
+  notifyWarning, pluralizeItems,
+} from 'lib/utils'
 import { useSaveFileDialog } from 'lib/file'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
@@ -167,16 +170,13 @@ const saveMemoryCardAs = () => {
   if (!isLoaded.value)
     return
 
-  dialogNoTransition({
-    title: 'Save as',
-    message: 'File name:',
-    prompt: {
-      model: fileName.value,
+  dialogSaveAs({
+    title: 'Save memory card',
+    fileName: fileName.value,
+    onOk: (fileName) => {
+      const buffer = mcfs.saveCardToMemory()
+      saveFileDiloague.saveAsBlob(fileName, buffer)
     },
-    cancel: true,
-  }).onOk(() => {
-    const buffer = mcfs.saveCardToMemory()
-    saveFileDiloague.saveAsBlob(fileName.value, buffer)
   })
 }
 

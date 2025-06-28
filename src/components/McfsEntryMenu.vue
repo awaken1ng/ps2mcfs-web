@@ -29,6 +29,14 @@
       <q-item-section>Save file</q-item-section>
     </q-item>
 
+    <q-item
+      v-if="path.isRoot && isDirectoryEntry(entry)"
+      clickable @click="emit('exportPsu', entry)"
+      data-cy="entry-menu-exportPsu"
+    >
+      <q-item-section>Export as .psu</q-item-section>
+    </q-item>
+
     <q-item clickable @click="emit('copyName', entry)" data-cy="entry-menu-copyName">
       <q-item-section>Copy name</q-item-section>
     </q-item>
@@ -45,23 +53,28 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { type Entry, isFileEntry } from 'lib/ps2mc'
+import { isFileEntry, isDirectoryEntry } from 'lib/ps2mc'
 import McfsEntryIcon from 'components/McfsEntryIcon.vue'
 import { QMenu } from 'quasar'
+import { usePathStore } from 'src/stores/path'
+import { McEntryInfo } from 'lib/mcfs'
 
 defineProps<{
   modelValue: boolean,
-  entry: Entry | undefined,
+  entry: McEntryInfo | undefined,
   target: HTMLDivElement | undefined,
 }>()
 
 const emit = defineEmits<{
-  (event: 'saveFile', entry: Entry): void
-  (event: 'copyName', entry: Entry): void
-  (event: 'rename', entry: Entry): void
-  (event: 'delete', entry: Entry): void
+  (event: 'saveFile', entry: McEntryInfo): void
+  (event: 'exportPsu', entry: McEntryInfo): void
+  (event: 'copyName', entry: McEntryInfo): void
+  (event: 'rename', entry: McEntryInfo): void
+  (event: 'delete', entry: McEntryInfo): void
   (event: 'escapeKey'): void
 }>()
+
+const path = usePathStore()
 
 const qmenu = ref<QMenu>()
 

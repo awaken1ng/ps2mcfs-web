@@ -9,42 +9,11 @@ export interface Psu {
   entries: McEntry[]
 }
 
-const writeU8 = (buffer: Uint8ClampedArray, ptr: number, value: number) => {
-  buffer[ptr] = value
-  return ptr + 1
-}
-
-const writeU16LE = (buffer: Uint8ClampedArray, ptr: number, value: number) => {
-  buffer[ptr] = value
-  buffer[ptr] = value >> 8
-  return ptr + 2
-}
-
-const writeU32LE = (buffer: Uint8ClampedArray, ptr: number, value: number) => {
-  buffer[ptr] = value
-  buffer[ptr] = value >> 8
-  buffer[ptr] = value >> 16
-  buffer[ptr] = value >> 24
-  return ptr + 4
-}
-
-const readU8 = (buffer: Uint8Array, ptr: number) => {
-  return buffer[ptr]!
-}
-
-const readU16LE = (buffer: Uint8Array, ptr: number) => {
-  return buffer[ptr]! | buffer[ptr + 1]! << 8
-}
-
-const readU32LE = (buffer: Uint8Array, ptr: number) => {
-  return buffer[ptr]! | buffer[ptr + 1]! << 8 | buffer[ptr + 2]! << 16 | buffer[ptr + 3]! << 24
-}
-
-const readCString = (buffer: Uint8Array, ptr: number, maxLength: number) => {
+const readCString = (view: DataView, ptr: number, maxLength: number) => {
   const charCodes = []
 
   for (let idx = ptr; idx < ptr + maxLength; idx++) {
-    const charCode = buffer[idx]!
+    const charCode = view.getUint8(idx)
     if (charCode === 0)
       break
 
@@ -55,60 +24,64 @@ const readCString = (buffer: Uint8Array, ptr: number, maxLength: number) => {
 }
 
 export const serializePsuEntry = (info: McEntryInfo) => {
-  const buffer = new Uint8ClampedArray(ENTRY_SIZE)
+  const array = new Uint8Array(ENTRY_SIZE)
+  const view = new DataView(array.buffer)
 
-  writeU16LE(buffer, 0x000, info.stat.mode)
-  writeU32LE(buffer, 0x004, info.stat.size)
-  writeU8(buffer, 0x008, info.stat.ctime.resv2)
-  writeU8(buffer, 0x009, info.stat.ctime.sec)
-  writeU8(buffer, 0x00A, info.stat.ctime.min)
-  writeU8(buffer, 0x00B, info.stat.ctime.hour)
-  writeU8(buffer, 0x00C, info.stat.ctime.day)
-  writeU8(buffer, 0x00D, info.stat.ctime.month)
-  writeU16LE(buffer, 0x00E, info.stat.ctime.year)
-  writeU8(buffer, 0x018, info.stat.mtime.resv2)
-  writeU8(buffer, 0x019, info.stat.mtime.sec)
-  writeU8(buffer, 0x01A, info.stat.mtime.min)
-  writeU8(buffer, 0x01B, info.stat.mtime.hour)
-  writeU8(buffer, 0x01C, info.stat.mtime.day)
-  writeU8(buffer, 0x01D, info.stat.mtime.month)
-  writeU16LE(buffer, 0x01E, info.stat.mtime.year)
+  view.setUint16(0x000, info.stat.mode, true)
+  view.setUint32(0x004, info.stat.size, true)
+  view.setUint8(0x008, info.stat.ctime.resv2)
+  view.setUint8(0x009, info.stat.ctime.sec)
+  view.setUint8(0x00A, info.stat.ctime.min)
+  view.setUint8(0x00B, info.stat.ctime.hour)
+  view.setUint8(0x00C, info.stat.ctime.day)
+  view.setUint8(0x00D, info.stat.ctime.month)
+  view.setUint16(0x00E, info.stat.ctime.year, true)
+  view.setUint8(0x018, info.stat.mtime.resv2)
+  view.setUint8(0x019, info.stat.mtime.sec)
+  view.setUint8(0x01A, info.stat.mtime.min)
+  view.setUint8(0x01B, info.stat.mtime.hour)
+  view.setUint8(0x01C, info.stat.mtime.day)
+  view.setUint8(0x01D, info.stat.mtime.month)
+  view.setUint16(0x01E, info.stat.mtime.year, true)
 
-  let ptr = 0x040
+  let offset = 0x040
   for (let idx = 0; idx < Math.min(info.name.length, MAX_NAME_LENGTH); idx++) {
     const charCode = info.name.charCodeAt(idx);
-    ptr = writeU8(buffer, ptr, charCode)
+    view.setUint8(offset, charCode)
+    offset += 1;
   }
 
-  return buffer
+  return array
 }
 
-export const deserializePsuEntry = (buffer: Uint8Array, offset: number): McEntryInfo => {
+export const deserializePsuEntry = (array: Uint8Array, offset: number): McEntryInfo => {
+  const view = new DataView(array.buffer)
+
   return {
     stat: {
-      mode: readU16LE(buffer, offset + 0x000),
+      mode: view.getUint16(offset + 0x000, true),
       attr: 0,
-      size: readU32LE(buffer, offset + 0x004),
+      size: view.getUint32(offset + 0x004, true),
       ctime: {
-        resv2: readU8(buffer, offset + 0x008),
-        sec: readU8(buffer, offset + 0x009),
-        min: readU8(buffer, offset + 0x00A),
-        hour: readU8(buffer, offset + 0x00B),
-        day: readU8(buffer, offset + 0x00C),
-        month: readU8(buffer, offset + 0x00D),
-        year: readU16LE(buffer, offset + 0x00E),
+        resv2: view.getUint8(offset + 0x008),
+        sec: view.getUint8(offset + 0x009),
+        min: view.getUint8(offset + 0x00A),
+        hour: view.getUint8(offset + 0x00B),
+        day: view.getUint8(offset + 0x00C),
+        month: view.getUint8(offset + 0x00D),
+        year: view.getUint16(offset + 0x00E, true),
       },
       mtime: {
-        resv2: readU8(buffer, offset + 0x018),
-        sec: readU8(buffer, offset + 0x019),
-        min: readU8(buffer, offset + 0x01A),
-        hour: readU8(buffer, offset + 0x01B),
-        day: readU8(buffer, offset + 0x01C),
-        month: readU8(buffer, offset + 0x01D),
-        year: readU16LE(buffer, offset + 0x01E),
+        resv2: view.getUint8(offset + 0x018),
+        sec: view.getUint8(offset + 0x019),
+        min: view.getUint8(offset + 0x01A),
+        hour: view.getUint8(offset + 0x01B),
+        day: view.getUint8(offset + 0x01C),
+        month: view.getUint8(offset + 0x01D),
+        year: view.getUint16(offset + 0x01E, true),
       },
     },
-    name: readCString(buffer, offset + 0x040, MAX_NAME_LENGTH)
+    name: readCString(view, offset + 0x040, MAX_NAME_LENGTH)
   }
 }
 
@@ -172,7 +145,6 @@ export const readPsu = (psu: Uint8Array) => {
 
     // sub directory must only contain files
     if (!isFileEntry(file)) {
-      console.log(file)
       notifyWarning({ message: `Invalid .psu file, entry at index ${idx} is not a file` })
       return
     }

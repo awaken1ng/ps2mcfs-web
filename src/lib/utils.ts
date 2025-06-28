@@ -2,7 +2,7 @@ import { Notify, Dialog, QDialogOptions, type QNotifyCreateOptions } from 'quasa
 import { useMcfsStore } from 'src/stores/mcfs'
 import { onMounted, onUnmounted } from 'vue'
 
-type ErrorMessage = {  message: string, caption?: string }
+type ErrorMessage = { message: string, caption?: string }
 
 const MEBIBYTE = 1048576;
 const KIBIBYTE = 1024;
@@ -91,6 +91,17 @@ export const dialogNoTransition = (opts: QDialogOptions) => {
     transitionDuration: 0,
     ...opts
   })
+}
+
+export const dialogSaveAs = (opts: { title: string, fileName: string, onOk: (fileName: string) => void }) => {
+  dialogNoTransition({
+    title: opts.title,
+    message: 'File name:',
+    prompt: {
+      model: opts.fileName,
+    },
+    cancel: true,
+  }).onOk(opts.onOk)
 }
 
 export const canDiscardUnsavedChanges = (message: string) => new Promise((resolve) => {

@@ -53,6 +53,7 @@
     :target="menuTarget"
     @escape-key="closeEntryMenu"
     @save-file="saveFile"
+    @export-psu="exportPsu"
     @copy-name="copyEntryName"
     @rename="openRenameEntryDialogue"
     @delete="deleteEntryFromMenu"
@@ -74,7 +75,7 @@ import McfsEntryMenu from 'components/McfsEntryMenu.vue'
 import DialogueEntryRename from 'components/DialogueEntryRename.vue'
 import { type Entry, isDirectoryEntry, useMcfs } from 'lib/ps2mc'
 import { useSaveFileDialog } from 'lib/file'
-import { dialogNoTransition, onClickOutside } from 'lib/utils'
+import { dialogNoTransition, dialogSaveAs, joinPath, onClickOutside } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
@@ -209,6 +210,31 @@ const saveFile = (entry: Entry) => {
 }
 
 // endregion: save
+
+// region: export .psu
+
+const exportPsu = (entry: Entry) => {
+  closeEntryMenu()
+
+  if (!isDirectoryEntry(entry))
+    return
+
+  const dirPath = joinPath('/', entry.name)
+  const psu = mcfs.exportDirectoryAsPsu({ path: dirPath })
+  if (!psu)
+    return
+
+  dialogSaveAs({
+    title: 'Export .psu',
+    fileName: `${entry.name}.psu`,
+    onOk: (fileName) => {
+      saveFileDialogue.saveAsBlob(fileName, psu)
+    },
+  })
+}
+
+// endregion: export .psu
+
 
 // region: copy name
 

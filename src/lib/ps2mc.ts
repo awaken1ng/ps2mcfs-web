@@ -358,6 +358,114 @@ export const useMcfs = () => {
     }
   }
 
+  const exportDirectoryAsPsu = (opts: { path: string }) => {
+    const dirFd = mcfs.open(opts.path, sceMcFileAttrSubdir)
+    if (dirFd < 0) {
+      notifyErrorWithCode(`Failed to open ${opts.path} for PSU export`, dirFd)
+      return
+    }
+
+    const dirInfo = mcfs.stat(dirFd)
+    if ('code' in dirInfo) {
+      notifyErrorWithCode(`Failed to get ${opts.path} information for PSU export`, dirFd)
+      return
+    }
+
+    const entries: { entry: Uint8Array, data?: Uint8Array }[] = [
+      {
+        entry: serializePsuEntry({
+          stat: {
+            mode: sceMcFileAttrReadable | sceMcFileAttrWriteable | sceMcFileAttrExecutable | sceMcFileAttrSubdir | sceMcFile0400 | sceMcFileAttrExists,
+            size: 0,
+            ctime: dirInfo.stat.ctime,
+            mtime: dirInfo.stat.mtime,
+            attr: 0,
+          },
+          name: '.',
+        })
+      },
+      {
+        entry: serializePsuEntry({
+          stat: {
+            mode: sceMcFileAttrReadable | sceMcFileAttrWriteable | sceMcFileAttrExecutable | sceMcFileAttrSubdir | sceMcFile0400 | sceMcFileAttrExists,
+            size: 0,
+            ctime: dirInfo.stat.ctime,
+            mtime: dirInfo.stat.mtime,
+            attr: 0,
+          },
+          name: '..',
+        })
+      },
+    ]
+
+    for (const item of readDirectoryFiltered(mcfs, dirFd)) {
+      const filePath = joinPath(opts.path, item.name)
+      const fileFd = mcfs.open(filePath, sceMcFileAttrFile | sceMcFileAttrReadable)
+      if (fileFd < 0) {
+        notifyErrorWithCode(`Failed to open file ${filePath} while exporting`, fileFd)
+        mcfs.close(fileFd)
+        mcfs.close(dirFd)
+        return
+      }
+
+      const resultData = mcfs.read(fileFd, item.stat.size)
+      if ('code' in resultData) {
+        // don't return here, close the handle first
+        mcfs.close(fileFd)
+        mcfs.close(dirFd)
+        notifyErrorWithCode(`Failed to read file ${filePath}`, resultData.code)
+        return
+      }
+
+      const aligned = alignTo(resultData.data, 1024, 0xFF)
+
+      const code = mcfs.close(fileFd)
+      if (code !== sceMcResSucceed) {
+        notifyErrorWithCode(`Failed to close file ${opts.path} while exporting`, code)
+        mcfs.close(fileFd)
+        return
+      }
+
+      const entry = serializePsuEntry(item)
+      entries.push({ entry, data: aligned })
+    }
+
+    const code = mcfs.close(dirFd)
+    if (code !== sceMcResSucceed) {
+      notifyErrorWithCode(`Failed to close directory ${opts.path} after exporting`, code)
+      return
+    }
+
+    const dirEntry = serializePsuEntry({
+      stat: {
+        mode: dirInfo.stat.mode,
+        attr: 0,
+        size: entries.length,
+        ctime: dirInfo.stat.ctime,
+        mtime: dirInfo.stat.mtime,
+      },
+      name: dirInfo.name
+    })
+
+    // concat everything into a single buffer
+    const totalSize = dirEntry.length + entries.reduce((acc, { entry, data }) => acc + entry.length + (data?.length || 0), 0)
+    const psu = new Uint8Array(totalSize)
+    psu.set(dirEntry)
+
+    let ptr = dirEntry.length
+    entries.forEach(({ entry, data }) => {
+      psu.set(entry, ptr)
+      ptr += entry.length
+
+      if (data) {
+        psu.set(data, ptr)
+        ptr += data.length
+      }
+    })
+
+    return psu
+  }
+
   const renameEntry = (root: string, entry: Entry, newName: string) => {
     const newPath = joinPath(root, newName)
     if (checkEntryExistence(mcfs, newPath) !== false) {
@@ -435,6 +543,7 @@ export const useMcfs = () => {
     readFile,
     writeFile,
     importDirectoryFromPsu,
+    exportDirectoryAsPsu,
     renameEntry,
     deleteEntry,
     state,
