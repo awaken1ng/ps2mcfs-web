@@ -69,7 +69,7 @@ watchEffect(() => {
 
 <style lang="css" scoped>
 .q-page {
-  margin: 1rem auto;
+  margin: auto;
   max-width: 600px;
 }
 </style>
