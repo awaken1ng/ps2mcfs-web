@@ -17,6 +17,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  PUBLIC_URL: /${{ github.event.repository.name }}
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
