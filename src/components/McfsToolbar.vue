@@ -43,7 +43,7 @@
       />
       <q-btn
         flat no-caps no-wrap icon="sym_s_create_new_folder" label="Create new directory" data-cy="toolbar-createDirectory"
-        @click="openMakeDirectoryDialogue" :disabled="!isLoaded"
+        @click="openMakeDirectoryDialogue" :disabled="!isLoaded || !path.isRoot"
       />
     </div>
 
