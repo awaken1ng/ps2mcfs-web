@@ -294,7 +294,11 @@ useDropZone(document, { onDrop, multiple: true, preventDefaultForUnhandled: true
 
 // region: psu import
 
-const openPsuFileDialog = useFileDialog({ multiple: false, reset: true })
+const openPsuFileDialog = useFileDialog({
+  multiple: false,
+  reset: true,
+  accept: '.psu',
+})
 const isImportPsuDialogueOpen = ref(false)
 const psu = ref<Psu>()
 const psuName = ref('')
