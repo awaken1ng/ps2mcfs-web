@@ -126,6 +126,7 @@ export const useMcfs = () => {
   const openCardFromMemory = (mc: Uint8Array): boolean => {
     try {
       state.isLoading = true
+      state.isLoaded = false
 
       const cardSpecs = readCardSpecs(mc)
 
@@ -143,7 +144,7 @@ export const useMcfs = () => {
 
       const cardFree = getAvailableSpace()
       if (cardFree === undefined)
-          return false
+        return false
 
       state.availableSpace = cardFree
       state.cardSize = cardSpecs.cardSize
