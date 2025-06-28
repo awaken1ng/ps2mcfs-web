@@ -407,6 +407,13 @@ export const useMcfs = () => {
         return
       }
 
+      // dread does not return all attributes
+      const info = mcfs.stat(fileFd)
+      if ('code' in info) {
+        notifyErrorWithCode(`Failed to get file information for ${filePath}`, info.code)
+        return
+      }
+
       const resultData = mcfs.read(fileFd, item.stat.size)
       if ('code' in resultData) {
         // don't return here, close the handle first
@@ -425,7 +432,7 @@ export const useMcfs = () => {
         return
       }
 
-      const entry = serializePsuEntry(item)
+      const entry = serializePsuEntry(info)
       entries.push({ entry, data: aligned })
     }
 
