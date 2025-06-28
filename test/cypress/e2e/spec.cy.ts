@@ -24,15 +24,6 @@ const createNewDirectory = (name: string) => {
   getEntryName(name).should('exist')
 }
 
-const deleteSelectedEntries = () => {
-  cy.log(`deleting selected entries`)
-  cy.get('[data-cy="toolbar-delete"]').click()
-  cy.withinDialog(() => {
-    cy.contains('Delete')
-    cy.contains('OK').click()
-  })
-}
-
 const getEntryName = (name: string) => {
   cy.log(`get entry name ${name}`)
   return cy.dataCy('entry-name').contains(name)
@@ -112,7 +103,6 @@ describe('Main', () => {
       cy.dataCy('file-name-skeleton').should('exist')
       cy.get('[data-cy="toolbar-addFile"][disabled]').should('exist')
       cy.get('[data-cy="toolbar-createDirectory"][disabled]').should('exist')
-      cy.get('[data-cy="toolbar-delete"][disabled]').should('exist')
       cy.get('[data-cy="toolbar-toggleSelect"][disabled]').should('exist')
 
       cy.dataCy('breadcrumbs-root').should('not.exist')
@@ -128,7 +118,6 @@ describe('Main', () => {
       cy.dataCy('file-name-skeleton').should('not.exist')
       cy.get('[data-cy="toolbar-addFile"]:not([disabled])').should('exist')
       cy.get('[data-cy="toolbar-createDirectory"]:not([disabled])').should('exist')
-      cy.get('[data-cy="toolbar-delete"][disabled]').should('exist')
       cy.get('[data-cy="toolbar-toggleSelect"][disabled]').should('exist')
 
       cy.dataCy('breadcrumbs-root').should('exist')
@@ -175,12 +164,13 @@ describe('Main', () => {
 
     const name1 = 'foo'
     const name2 = 'bar'
+    const name3 = 'baz'
 
     createNewDirectory(name1)
     createNewDirectory(name2)
 
     toggleEntrySelection(name1)
-    deleteSelectedEntries()
+    deleteFromMenu(name1)
 
     getEntryName(name1).should('not.exist')
     getEntryName(name2).should('exist')
