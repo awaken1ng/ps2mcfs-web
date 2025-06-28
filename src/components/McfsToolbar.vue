@@ -128,7 +128,11 @@ const newMemoryCard = async () => {
   entryList.refresh()
 }
 
-const openMemoryCardDialog = useFileDialog({ multiple: false, reset: true })
+const openMemoryCardDialog = useFileDialog({
+  multiple: false,
+  reset: true,
+  accept: '*.bin,*.mcd,*.mc2,*.ps2',
+})
 
 const openMemoryCardFromFile = async () => {
   if (!await canDiscardUnsavedChanges('Open new file?'))
