@@ -3,7 +3,7 @@ import { joinPath, notifyError, notifyWarning } from './utils'
 import { McEntryInfo, type Module, sceMcFileAttrReadable, sceMcFileAttrWriteable,
   sceMcFileAttrExecutable, sceMcFileAttrDupProhibit, sceMcFileAttrFile,
   sceMcFileAttrSubdir, sceMcFileAttrPDAExec, sceMcFileAttrHidden, sceMcFileAttrPS1,
-  McFatCardSpecs, sceMcResSucceed,
+  McFatSetCardSpecs, sceMcResSucceed,
   CF_USE_ECC, CF_BAD_BLOCK, CF_ERASE_ZEROES,
   sceMcFileCreateFile, sceMcResNotFile, sceMcResNoEntry,
   McStDateTime,
@@ -92,7 +92,7 @@ export const useMcfs = () => {
       const cardSpecs = {
         pageSize: 512,
         blockSize: 16,
-        cardSize: 8 * 1024 * 1024,
+        cardPages: 8192 * 2,
         cardFlags: CF_BAD_BLOCK | CF_ERASE_ZEROES,
       }
 
@@ -111,7 +111,7 @@ export const useMcfs = () => {
           return false
 
       state.availableSpace = cardFree
-      state.cardSize = cardSpecs.cardSize
+      state.cardSize = cardSpecs.cardPages * cardSpecs.pageSize
       state.hasUnsavedChanges = false
       state.isLoaded = true
     } finally {
@@ -145,7 +145,7 @@ export const useMcfs = () => {
         return false
 
       state.availableSpace = cardFree
-      state.cardSize = cardSpecs.cardSize
+      state.cardSize = cardSpecs.cardPages * cardSpecs.pageSize
       state.hasUnsavedChanges = false
       state.isLoaded = true
     } finally {
@@ -569,15 +569,17 @@ export const isPs1Save = (entry: McEntryInfo) => Boolean(entry.stat.mode & sceMc
 export const isNonEccImage = (cardSize: number) => cardSize % 1024 === 0
 export const isEccImage = (cardSize: number) => cardSize % 1056 === 0
 
-export const readCardSpecs = (array: Uint8Array): McFatCardSpecs => {
-  const pageSize = array[40]! | (array[41]! << 8)
-  const pagesPerCluster = array[42]! | (array[43]! << 8)
-  const blockSize = array[44]! | (array[45]! << 8)
-  const clustersPerCard = array[48]! | (array[49]! << 8) | (array[50]! << 16) | (array[51]! << 24)
-  const cardFlags = array[337]!;
-  const cardSize = clustersPerCard * pagesPerCluster * pageSize
+export const readCardSpecs = (array: Uint8Array): McFatSetCardSpecs => {
+  const view = new DataView(array.buffer)
 
-  return { pageSize, blockSize, cardSize, cardFlags }
+  const pageSize = view.getUint16(40, true)
+  const pagesPerCluster =  view.getUint16(42, true)
+  const blockSize = view.getUint16(44, true)
+  const clustersPerCard = view.getUint32(48, true)
+  const cardFlags = view.getUint8(337)
+  const cardPages = clustersPerCard * pagesPerCluster
+
+  return { pageSize, blockSize, cardPages, cardFlags }
 }
 
 export const isEntryNameLegal = (name: string) => {
