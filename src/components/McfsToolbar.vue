@@ -147,7 +147,6 @@ openMemoryCardDialog.onChange(async (files) => {
     return
 
   const file = files.item(0)!
-  fileName.value = file.name
 
   const isValidSize = isNonEccImage(file.size) || isEccImage(file.size)
   if (!isValidSize) {
@@ -161,6 +160,7 @@ openMemoryCardDialog.onChange(async (files) => {
   if (!mcfs.openCardFromMemory(array))
     return
 
+  fileName.value = file.name
   path.goToRoot()
   entryList.refresh()
 })
