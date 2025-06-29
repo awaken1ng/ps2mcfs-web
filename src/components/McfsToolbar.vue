@@ -17,7 +17,7 @@
       <div class="row wrap justify-center">
         <q-btn
           flat no-caps no-wrap icon="sym_s_file_save" label="Save as" data-cy="toolbar-saveAs"
-          @click="saveMemoryCardAs" :disable="!isLoaded"
+          @click="saveMemoryCardAs" :disable="true || !isLoaded"
         />
         <q-btn
           flat no-caps no-wrap icon="sym_s_close" label="Close" data-cy="toolbar-close"
