@@ -124,6 +124,7 @@ const newMemoryCard = async () => {
   if (!cardSpecs)
     return
 
+  fileName.value = DEFAULT_FILENAME
   path.goToRoot()
   entryList.refresh()
 }
