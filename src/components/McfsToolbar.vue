@@ -130,12 +130,13 @@ const newMemoryCard = async () => {
   if (!await canDiscardUnsavedChanges('Create new memory card?'))
     return
 
+  path.goToRoot()
+
   const cardSpecs = mcfs.newCardInMemory()
   if (!cardSpecs)
     return
 
   fileName.value = DEFAULT_FILENAME
-  path.goToRoot()
   entryList.refresh()
 }
 
@@ -164,6 +165,8 @@ openMemoryCardDialog.onChange(async (files) => {
     return
   }
 
+  path.goToRoot()
+
   const buffer = await file.arrayBuffer()
   const array = new Uint8Array(buffer)
 
@@ -171,7 +174,6 @@ openMemoryCardDialog.onChange(async (files) => {
     return
 
   fileName.value = file.name
-  path.goToRoot()
   entryList.refresh()
 })
 

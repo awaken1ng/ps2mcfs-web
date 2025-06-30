@@ -88,6 +88,7 @@ export const useMcfs = () => {
   const newCardInMemory = (): boolean => {
     try {
       state.isLoading = true
+      state.isLoaded = false
 
       const info = mcfs.generateCardBuffer()
       const cardSpecs = readCardSpecs(info.superblock)
