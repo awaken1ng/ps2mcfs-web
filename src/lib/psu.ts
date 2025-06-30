@@ -85,8 +85,15 @@ export const deserializePsuEntry = (array: Uint8Array, offset: number): McEntryI
   }
 }
 
+const calculatePadding = (size: number, align: number) => {
+  if ((size % align) === 0)
+    return 0
+
+  return align - (size % align)
+}
+
 export const alignTo = (data: Uint8Array, align: number, fillValue: number) => {
-  const paddingLength = align - (data.length % align)
+  const paddingLength = calculatePadding(data.length, align)
   const alignedLength = data.length + paddingLength
   const aligned = new Uint8Array(alignedLength)
   aligned.set(data)
@@ -152,7 +159,7 @@ export const readPsu = (psu: Uint8Array) => {
     const contents = psu.slice(offset, offset + file.stat.size)
     parsed.entries.push({ ...file, contents })
 
-    const paddingLength = 1024 - (file.stat.size % 1024)
+    const paddingLength = calculatePadding(file.stat.size, 1024)
     offset += file.stat.size + paddingLength
   }
 
