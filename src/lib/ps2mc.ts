@@ -157,9 +157,47 @@ export const useMcfs = () => {
     return true
   }
 
-  const saveCardToMemory = () => {
+  const saveCardToMemory = (opts: {
+    withEcc: boolean,
+    onProgress?: (bytesWritten: number, bytesToWrite: number) => void,
+  }) => {
     state.hasUnsavedChanges = false
-    return mcfs.getCardBuffer()
+
+    const specs = mcfs.getCardSpecs()
+    if ('code' in specs) {
+      notifyErrorWithCode(`Failed to get card specs`, specs.code)
+      return
+    }
+
+    let cardSizeWithMaybeEcc = specs.cardSize
+    let pageSizeWithMaybeEcc = specs.pageSize
+    if (opts.withEcc) {
+      cardSizeWithMaybeEcc += cardSizeWithMaybeEcc >> 5
+      pageSizeWithMaybeEcc += pageSizeWithMaybeEcc >> 5
+    }
+
+    const cardPages = specs.cardSize / specs.pageSize
+    const buffer = new Uint8Array(cardSizeWithMaybeEcc)
+    for (let pageIdx = 0; pageIdx < cardPages; pageIdx++) {
+      const page = mcfs.readPage(pageIdx, opts.withEcc)
+      if ('code' in page) {
+        notifyErrorWithCode(`Failed to read card page ${pageIdx}`, page.code)
+        return
+      }
+
+      const pageOffset = pageSizeWithMaybeEcc * pageIdx
+      buffer.set(page.data, pageOffset)
+
+
+      if ('ecc' in page) {
+        const eccOffset = pageOffset + specs.pageSize
+        buffer.set(page.ecc, eccOffset)
+      }
+
+      opts.onProgress?.(pageIdx * pageSizeWithMaybeEcc, cardSizeWithMaybeEcc)
+    }
+
+    return buffer
   }
 
   const closeCard = () => {

@@ -17,7 +17,7 @@
       <div class="row wrap justify-center">
         <q-btn
           flat no-caps no-wrap icon="sym_s_file_save" label="Save as" data-cy="toolbar-saveAs"
-          @click="saveMemoryCardAs" :disable="!isLoaded"
+          @click="openSaveCardDialogue" :disable="!isLoaded"
         />
         <q-btn
           flat no-caps no-wrap icon="sym_s_close" label="Close" data-cy="toolbar-close"
@@ -64,6 +64,15 @@
     </div>
   </q-toolbar>
 
+  <DialogueSaveCard
+    v-model="isSaveCardDialogueOpen"
+    :initial-name="fileName"
+    :is-writing
+    :bytes-exported
+    :bytes-to-export
+    @save-card="saveMemoryCard"
+  />
+
   <DialogueFilesAdd
     v-model="isAddFileDialogueOpen"
     :files-to-add="filesToAdd"
@@ -95,9 +104,10 @@ import { computed, ref, watchEffect } from 'vue'
 import DialogueFilesAdd, { type FileToAdd } from 'components/DialogueFilesAdd.vue'
 import DialoguePsuImport from 'components/DialoguePsuImport.vue'
 import DialogueDirectoryCreate from 'components/DialogueDirectoryCreate.vue'
+import DialogueSaveCard from 'components/DialogueSaveCard.vue'
 import { isEccImage, isNonEccImage, useMcfs } from 'lib/ps2mc'
 import {
-  canDiscardUnsavedChanges, dialogSaveAs, notifyWarning,
+  canDiscardUnsavedChanges, notifyWarning,
 } from 'lib/utils'
 import { useSaveFileDialog } from 'lib/file'
 import { useEntryListStore } from 'stores/entryList'
@@ -165,23 +175,44 @@ openMemoryCardDialog.onChange(async (files) => {
   entryList.refresh()
 })
 
+// region: save card
+
 const saveFileDiloague = useSaveFileDialog()
+const isSaveCardDialogueOpen = ref(false)
+const bytesExported = ref(0)
+const bytesToExport = ref(0)
 
-const saveMemoryCardAs = () => {
-  if (!isLoaded.value)
-    return
-
-  dialogSaveAs({
-    title: 'Save memory card',
-    fileName: fileName.value,
-    onOk: (name) => {
-      fileName.value = name
-
-      const buffer = mcfs.saveCardToMemory()
-      saveFileDiloague.saveAsBlob(name, buffer)
-    },
-  })
+const openSaveCardDialogue = () => {
+  isSaveCardDialogueOpen.value = true
 }
+
+const saveMemoryCard = (name: string, withEcc: boolean) => {
+  try {
+    isWriting.value = true
+
+    const buffer = mcfs.saveCardToMemory({
+      withEcc,
+      onProgress: (bytesWritten, bytesToWrite) => {
+        bytesExported.value = bytesWritten
+        bytesToExport.value = bytesToWrite
+      }
+    })
+
+    if (!buffer)
+      return
+
+    saveFileDiloague.saveAsBlob(name, buffer)
+    fileName.value = name
+    isSaveCardDialogueOpen.value = false
+  } finally {
+    isWriting.value = false
+    bytesExported.value = 0
+    bytesToExport.value = 0
+  }
+
+}
+
+// endregion: save card
 
 const closeMemoryCard = async () => {
   if (!await canDiscardUnsavedChanges('Close the card?'))
