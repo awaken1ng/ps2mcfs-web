@@ -4,7 +4,7 @@ import { McEntryInfo, type Module, sceMcFileAttrReadable, sceMcFileAttrWriteable
   sceMcFileAttrExecutable, sceMcFileAttrDupProhibit, sceMcFileAttrFile,
   sceMcFileAttrSubdir, sceMcFileAttrPDAExec, sceMcFileAttrHidden, sceMcFileAttrPS1,
   McFatSetCardSpecs, sceMcResSucceed,
-  CF_USE_ECC, CF_BAD_BLOCK,
+  CF_USE_ECC,
   sceMcFileCreateFile, sceMcResNotFile, sceMcResNoEntry,
   McStDateTime,
   mcFileUpdateAttrMode,
@@ -89,16 +89,11 @@ export const useMcfs = () => {
     try {
       state.isLoading = true
 
-      const cardSpecs = {
-        pageSize: 512,
-        blockSize: 16,
-        cardPages: 8192 * 2,
-        // real flags are 0x20 | CF_BAD_BLOCK | 0x2 | CF_USE_ECC,
-        // remove ECC flag since we're generating non-ECC image under the hood
-        cardFlags: 0x20 | CF_BAD_BLOCK | 0x2,
-      }
+      const info = mcfs.generateCardBuffer()
+      const cardSpecs = readCardSpecs(info.superblock)
+      if (!info.isEccImage)
+        cardSpecs.cardFlags ^= CF_USE_ECC // remove ECC bit
 
-      mcfs.generateCardBuffer()
       mcfs.setCardSpecs(cardSpecs)
       mcfs.setCardChanged(true)
 
