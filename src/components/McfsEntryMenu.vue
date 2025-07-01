@@ -38,7 +38,7 @@
     <q-separator />
 
     <q-item
-      v-if="isFileEntry(entry)"
+      v-if="isSelectedNoneOrOne && isFileEntry(entry)"
       clickable @click="emit('saveFile', entry)"
       data-cy="entry-menu-saveFile"
     >
