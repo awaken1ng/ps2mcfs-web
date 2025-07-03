@@ -130,7 +130,7 @@ defineExpose({
 })
 </script>
 
-<style lang="css">
+<style lang="css" scoped>
 .entry { padding: 0; }
 .entry .q-item__section--avatar { padding-left: 16px; }
 .entry .q-item__section--main { padding-right: 16px; }
