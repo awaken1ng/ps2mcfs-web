@@ -23,7 +23,7 @@
           :error="!isNameValid"
         >
           <template v-slot:before>
-            <q-icon name="sym_s_folder" />
+            <q-icon :name="ICON_ENTRY_FOLDER" />
           </template>
         </q-input>
 
@@ -48,6 +48,7 @@ import { computed, ref, watch } from 'vue'
 import { MAX_NAME_LENGTH, isEntryNameLegal, isFileEntry } from 'lib/ps2mc'
 import { useEntryListStore } from 'stores/entryList'
 import { type McEntryInfo } from 'ps2mcfs-wasm/mcfs'
+import { ICON_ENTRY_FOLDER } from 'lib/icon'
 
 const props = defineProps<{
   modelValue: boolean,

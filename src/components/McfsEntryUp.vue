@@ -9,7 +9,7 @@
   >
     <template v-if="!path.isRoot">
       <q-item-section avatar >
-        <q-icon name="sym_s_subdirectory_arrow_left" />
+        <q-icon :name="ICON_ENTRY_GO_UP" />
       </q-item-section>
 
       <q-item-section>
@@ -43,6 +43,7 @@ import { formatBytes } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
+import { ICON_ENTRY_GO_UP } from 'lib/icon'
 
 const mcfs = useMcfs()
 const { isLoading, isLoaded, availableSpace, cardSize } = storeToRefs(mcfs.state)

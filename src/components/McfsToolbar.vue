@@ -5,22 +5,22 @@
     <div class="row wrap justify-center">
       <div class="row wrap justify-center">
         <q-btn
-          flat no-caps no-wrap icon="sym_s_note_add" label="New" data-cy="toolbar-new"
+          flat no-caps no-wrap :icon="ICON_VMC_NEW" label="New" data-cy="toolbar-new"
           @click="newMemoryCard"
         />
         <q-btn
-          flat no-caps no-wrap icon="sym_s_file_open" label="Open" data-cy="toolbar-open"
+          flat no-caps no-wrap :icon="ICON_VMC_OPEN" label="Open" data-cy="toolbar-open"
           @click="openMemoryCardFromFile"
         />
       </div>
 
       <div class="row wrap justify-center">
         <q-btn
-          flat no-caps no-wrap icon="sym_s_file_save" label="Save as" data-cy="toolbar-saveAs"
+          flat no-caps no-wrap :icon="ICON_VMC_SAVE" label="Save as" data-cy="toolbar-saveAs"
           @click="openSaveCardDialogue" :disable="!isLoaded"
         />
         <q-btn
-          flat no-caps no-wrap icon="sym_s_close" label="Close" data-cy="toolbar-close"
+          flat no-caps no-wrap :icon="ICON_VMC_CLOSE" label="Close" data-cy="toolbar-close"
           @click="closeMemoryCard" :disable="!isLoaded"
         />
       </div>
@@ -30,19 +30,19 @@
   <q-toolbar class="justify-center">
     <div class="row wrap justify-center">
       <q-btn
-        flat no-caps no-wrap icon="sym_s_note_stack_add" label="Add files" data-cy="toolbar-addFile"
+        flat no-caps no-wrap :icon="ICON_VMC_IMPORT_FILE" label="Add files" data-cy="toolbar-addFile"
         @click="openAddFileDialogue" :disabled="!isLoaded"
       />
       <q-btn
         flat no-caps no-wrap
-        icon="sym_s_place_item"
+        :icon="ICON_VMC_IMPORT_PSU"
         label="Import .psu"
         @click="openImportPsuDialog"
         :disable="!isLoaded"
         data-cy="toolbar-importPsu"
       />
       <q-btn
-        flat no-caps no-wrap icon="sym_s_create_new_folder" label="Create new directory" data-cy="toolbar-createDirectory"
+        flat no-caps no-wrap :icon="ICON_VMC_MKDIR" label="Create new directory" data-cy="toolbar-createDirectory"
         @click="openMakeDirectoryDialogue" :disabled="!isLoaded || !path.isRoot"
       />
     </div>
@@ -116,6 +116,11 @@ import { storeToRefs } from 'pinia'
 import { useDropZone, useFileDialog } from '@vueuse/core'
 import { Psu, readPsu } from 'src/lib/psu'
 import { useMeta } from 'quasar'
+import {
+  ICON_VMC_NEW, ICON_VMC_OPEN, ICON_VMC_SAVE, ICON_VMC_CLOSE,
+  ICON_VMC_IMPORT_FILE, ICON_VMC_IMPORT_PSU, ICON_VMC_MKDIR,
+  ICON_ENTRY_DESELECT_ALL, ICON_ENTRY_SELECT_ALL,
+} from 'lib/icon'
 
 const DEFAULT_FILENAME = 'ps2-memory-card.bin'
 
@@ -408,7 +413,7 @@ const createNewDirectory = (dirName: string) => {
 
 // endregion: mkdir
 
-const selectOrDeselectIcon = computed(() => entryList.isSelectedAll ? 'sym_s_deselect' : 'sym_s_select_all')
+const selectOrDeselectIcon = computed(() => entryList.isSelectedAll ? ICON_ENTRY_DESELECT_ALL : ICON_ENTRY_SELECT_ALL)
 
 const selectOrDeselectTitle = computed(() => entryList.isSelectedAll ? 'Deselect all' : 'Select all')
 </script>

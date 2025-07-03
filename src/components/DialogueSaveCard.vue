@@ -31,7 +31,7 @@
             counter
           >
             <template v-slot:before>
-              <q-icon :name="ICON_FILE" />
+              <q-icon :name="ICON_ENTRY_FILE" />
             </template>
           </q-input>
         </div>
@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { ICON_FILE } from 'lib/icon'
+import { ICON_ENTRY_FILE } from 'lib/icon'
 import { formatBytes } from 'lib/utils'
 
 const props = defineProps<{

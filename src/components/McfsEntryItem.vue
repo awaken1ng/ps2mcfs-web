@@ -57,7 +57,7 @@
       @click.prevent="openMenu"
       @touchend.prevent="openMenu"
     >
-      <q-btn size="12px" flat dense round icon="sym_s_more_vert" />
+      <q-btn size="12px" flat dense round :icon="ICON_ENTRY_MENU" />
     </q-item-section>
   </q-item>
 </template>
@@ -70,6 +70,7 @@ import { isDirectoryEntry, isFileEntry } from 'lib/ps2mc'
 import { formatBytes, pluralizeItems } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'
 import { computed } from 'vue'
+import { ICON_ENTRY_MENU } from 'lib/icon'
 
 const props = defineProps<{
   readonly entry: McEntryInfo,

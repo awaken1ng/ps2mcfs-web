@@ -30,7 +30,7 @@
           :disable="isWriting"
         >
           <template v-slot:before>
-            <q-icon name="sym_s_draft" />
+            <q-icon :name="ICON_ENTRY_FILE" />
           </template>
 
           <template v-slot:hint>
@@ -40,7 +40,8 @@
           </template>
 
           <template v-slot:after>
-            <q-btn round dense flat icon="sym_s_delete"
+            <q-btn
+              round dense flat :icon="ICON_ENTRY_DELETE"
               @click="emit('removeItem', idx)"
               :disable="isWriting"
             />
@@ -89,6 +90,7 @@ import { isEntryNameLegal, isFileEntry, MAX_NAME_LENGTH } from 'lib/ps2mc'
 import { formatBytes } from 'lib/utils'
 import { type QInput } from 'quasar'
 import { useEntryListStore } from 'stores/entryList'
+import { ICON_ENTRY_FILE, ICON_ENTRY_DELETE } from 'lib/icon'
 
 export interface FileToAdd {
   name: string,

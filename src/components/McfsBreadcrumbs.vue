@@ -16,7 +16,7 @@
       <div class="q-tab__label row q-gutter-md">
         <span>/</span>
         <div v-if="!path.isRoot">
-          <q-icon name="sym_s_keyboard_arrow_right" />
+          <q-icon :name="ICON_BREADCRUMB_ARROW" />
         </div>
       </div>
     </q-tab>
@@ -35,7 +35,7 @@
           <span>{{ path.components[idx] }}</span>
 
           <div v-if="fullComponent !== path.current">
-            <q-icon name="sym_s_keyboard_arrow_right" />
+            <q-icon :name="ICON_BREADCRUMB_ARROW" />
           </div>
         </div>
       </q-tab>
@@ -47,6 +47,7 @@
 import { useMcfs } from 'lib/ps2mc'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
+import { ICON_BREADCRUMB_ARROW } from 'lib/icon'
 
 const mcfs = useMcfs()
 const { isLoaded } = storeToRefs(mcfs.state)
