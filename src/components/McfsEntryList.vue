@@ -5,8 +5,9 @@
     separator
   >
     <McfsEntryUp
-      class="entry" data-cy="entry-up"
-      @click="closeEntryMenuIfInRoot"
+      data-cy="entry-up"
+      @click.prevent="closeEntryMenuIfInRoot"
+      @touchend.prevent="closeEntryMenuIfInRoot"
     />
 
     <q-item

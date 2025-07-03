@@ -3,19 +3,23 @@
     class="entry non-selectable"
     :clickable
     :v-ripple="clickable"
-    @contextmenu.prevent="$emit('openMenu', entry)"
+    @contextmenu.prevent="openMenu"
     :focused="entryList.isSelected(entry)"
     :active="entryList.isSelected(entry)"
     data-cy="entry"
   >
     <q-item-section
       avatar data-cy="entry-icon"
-      @click.stop="$emit('toggleSelection', entry)"
+      @click.prevent="toggleSelection"
+      @touchend.prevent="toggleSelection"
     >
       <McfsEntryIcon :entry="entry" selection-icons />
     </q-item-section>
 
-    <q-item-section @click="$emit('openDirectory', entry)">
+    <q-item-section
+      @click.prevent="openDirectory"
+      @touchend.prevent="openDirectory"
+    >
       <q-item-label class="text-break" data-cy="entry-name">
         {{ entry.name }}
       </q-item-label>
@@ -36,7 +40,11 @@
       </q-item-label>
     </q-item-section>
 
-    <q-item-section side class="side attributes-and-date hide-on-mobile" @click="$emit('openDirectory', entry)">
+    <q-item-section
+      side class="side attributes-and-date hide-on-mobile"
+      @click.prevent="openDirectory"
+      @touchend.prevent="openDirectory"
+    >
       <q-item-label caption class="column items-end text-no-wrap">
         <McfsEntryAttributes :entry="entry"/>
         <div :title="createdLong">Created: {{ createdShort }}</div>
@@ -44,7 +52,11 @@
       </q-item-label>
     </q-item-section>
 
-    <q-item-section v-if="menu" side class="side menu" @click.stop="$emit('openMenu', entry)" data-cy="entry-menu-open">
+    <q-item-section
+      v-if="menu" side class="side menu" data-cy="entry-menu-open"
+      @click.prevent="openMenu"
+      @touchend.prevent="openMenu"
+    >
       <q-btn size="12px" flat dense round icon="sym_s_more_vert" />
     </q-item-section>
   </q-item>
@@ -52,7 +64,7 @@
 
 <script lang="ts" setup>
 import McfsEntryIcon from 'components/McfsEntryIcon.vue'
-import McfsEntryAttributes from 'src/components/McfsEntryAttributes'
+import McfsEntryAttributes from 'components/McfsEntryAttributes'
 import { McEntryInfo, McStDateTime } from 'ps2mcfs-wasm/mcfs'
 import { isDirectoryEntry, isFileEntry } from 'lib/ps2mc'
 import { formatBytes, pluralizeItems } from 'lib/utils'
@@ -66,13 +78,17 @@ const props = defineProps<{
   errorMessage?: string | undefined,
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (event: 'toggleSelection', entry: McEntryInfo): void
   (event: 'openDirectory', entry: McEntryInfo): void
   (event: 'openMenu', entry: McEntryInfo): void
 }>()
 
 const entryList = useEntryListStore()
+
+const toggleSelection = () => emit('toggleSelection', props.entry)
+const openDirectory = () => emit('openDirectory', props.entry)
+const openMenu = () => emit('openMenu', props.entry)
 
 const itemsInDirectory = (entry: McEntryInfo) => {
   const n = isDirectoryEntry(entry)
