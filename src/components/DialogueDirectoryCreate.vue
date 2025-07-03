@@ -12,20 +12,27 @@
       <q-card-section class="q-dialog__message">
         New directory name:
 
-        <q-input
-          v-model="name"
-          dense
-          autofocus
-          bottom-slots
-          :maxlength="MAX_NAME_LENGTH"
-          counter
-          :error-message="nameInvalidReason"
-          :error="!isNameValid"
+        <q-form
+          autocomplete="off"
+          @submit.prevent="makeDirectory"
         >
-          <template v-slot:before>
-            <q-icon name="sym_s_folder" />
-          </template>
-        </q-input>
+          <q-input
+            v-model="name"
+            type="text"
+            dense
+            autofocus
+            bottom-slots
+            :maxlength="MAX_NAME_LENGTH"
+            counter
+            :error-message="nameInvalidReason"
+            :error="!isNameValid"
+          >
+            <template v-slot:before>
+              <q-icon name="sym_s_folder" />
+            </template>
+          </q-input>
+      </q-form>
+
       </q-card-section>
 
       <q-card-actions align="right">
@@ -35,7 +42,6 @@
           flat label="Create" color="primary"
           @click="makeDirectory"
           :disable="!isNameValid"
-          v-close-popup
         />
       </q-card-actions>
     </q-card>
@@ -82,7 +88,12 @@ watch(props, () => {
 })
 
 const makeDirectory = () => {
+  // submit from form (e.g. on Enter) doesn't do validation
+  if (!isNameValid.value)
+    return
+
   emit('makeDirectory', name.value)
   name.value = ''
+  emit('update:modelValue', false)
 }
 </script>
