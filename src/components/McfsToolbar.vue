@@ -4,418 +4,44 @@
     <!-- and split buttons further, so that when wrap happens, it nicely splits in half -->
     <div class="row wrap justify-center">
       <div class="row wrap justify-center">
-        <q-btn
-          flat no-caps no-wrap :icon="ICON_VMC_NEW" label="New" data-cy="toolbar-new"
-          @click="newMemoryCard"
-        />
-        <q-btn
-          flat no-caps no-wrap :icon="ICON_VMC_OPEN" label="Open" data-cy="toolbar-open"
-          @click="openMemoryCardFromFile"
-        />
+        <McfsToolbarVmcNew />
+        <McfsToolbarVmcOpen />
       </div>
 
       <div class="row wrap justify-center">
-        <q-btn
-          flat no-caps no-wrap :icon="ICON_VMC_SAVE" label="Save as" data-cy="toolbar-saveAs"
-          @click="openSaveCardDialogue" :disable="!isLoaded"
-        />
-        <q-btn
-          flat no-caps no-wrap :icon="ICON_VMC_CLOSE" label="Close" data-cy="toolbar-close"
-          @click="closeMemoryCard" :disable="!isLoaded"
-        />
+        <McfsToolbarVmcSave />
+        <McfsToolbarVmcClose />
       </div>
     </div>
   </q-toolbar>
 
   <q-toolbar class="justify-center">
     <div class="row wrap justify-center">
-      <q-btn
-        flat no-caps no-wrap :icon="ICON_VMC_IMPORT_FILE" label="Add files" data-cy="toolbar-addFile"
-        @click="openAddFileDialogue" :disabled="!isLoaded"
-      />
-      <q-btn
-        flat no-caps no-wrap
-        :icon="ICON_VMC_IMPORT_PSU"
-        label="Import .psu"
-        @click="openImportPsuDialog"
-        :disable="!isLoaded"
-        data-cy="toolbar-importPsu"
-      />
-      <q-btn
-        flat no-caps no-wrap :icon="ICON_VMC_MKDIR" label="Create new directory" data-cy="toolbar-createDirectory"
-        @click="openMakeDirectoryDialogue" :disabled="!isLoaded || !path.isRoot"
-      />
+      <McfsToolbarImportFiles />
+      <McfsToolbarImportPsu />
+      <McfsToolbarMkdir />
     </div>
-
   </q-toolbar>
 
   <q-toolbar class="toolbar-secondary">
-    <div v-if="isLoaded" class="file-name" data-cy="file-name">
-      {{ fileName }} <span v-if="hasUnsavedChanges" class="non-selectable">*</span>
-    </div>
-    <q-skeleton v-else animation="none" width="10rem" data-cy="file-name-skeleton" />
+    <McfsToolbarVmcFileName />
 
     <div class="row wrap justify-center">
-      <q-btn
-        flat no-caps no-wrap
-        :icon="selectOrDeselectIcon" :label="selectOrDeselectTitle" data-cy="toolbar-toggleSelect"
-        @click="entryList.toggleSelectionAll" :disabled="!isLoaded || !entries.length"
-      />
+      <McfsToolbarSelectionToggle />
     </div>
   </q-toolbar>
-
-  <DialogueSaveCard
-    v-model="isSaveCardDialogueOpen"
-    :initial-name="fileName"
-    :is-writing
-    :bytes-exported
-    :bytes-to-export
-    @save-card="saveMemoryCard"
-  />
-
-  <DialogueFilesAdd
-    v-model="isAddFileDialogueOpen"
-    :files-to-add="filesToAdd"
-    :is-writing="isWriting"
-    :availableSpace="availableSpace"
-    @remove-item="removeItemFromAddList"
-    @remove-all="clearFilesToAdd"
-    @add-file="addFileToAddList"
-    @add-to-card="addFilesToCard"
-  />
-
-  <DialoguePsuImport
-    v-model="isImportPsuDialogueOpen"
-    :file-name="psuName"
-    :psu="psu"
-    :availableSpace="availableSpace"
-    :is-writing="isWriting"
-    @import="importSelectedPsu"
-  />
-
-  <DialogueDirectoryCreate
-    v-model="isMakeDirectoryDialogueOpen"
-    @make-directory="createNewDirectory"
-  />
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from 'vue'
-import DialogueFilesAdd, { type FileToAdd } from 'components/DialogueFilesAdd.vue'
-import DialoguePsuImport from 'components/DialoguePsuImport.vue'
-import DialogueDirectoryCreate from 'components/DialogueDirectoryCreate.vue'
-import DialogueSaveCard from 'components/DialogueSaveCard.vue'
-import { isEccImage, isNonEccImage, useMcfs } from 'lib/ps2mc'
-import {
-  canDiscardUnsavedChanges, notifyWarning,
-} from 'lib/utils'
-import { useSaveFileDialog } from 'lib/file'
-import { useEntryListStore } from 'stores/entryList'
-import { usePathStore } from 'stores/path'
-import { storeToRefs } from 'pinia'
-import { useDropZone, useFileDialog } from '@vueuse/core'
-import { Psu, readPsu } from 'src/lib/psu'
-import { useMeta } from 'quasar'
-import {
-  ICON_VMC_NEW, ICON_VMC_OPEN, ICON_VMC_SAVE, ICON_VMC_CLOSE,
-  ICON_VMC_IMPORT_FILE, ICON_VMC_IMPORT_PSU, ICON_VMC_MKDIR,
-  ICON_ENTRY_DESELECT_ALL, ICON_ENTRY_SELECT_ALL,
-} from 'lib/icon'
-
-const DEFAULT_FILENAME = 'ps2-memory-card.bin'
-
-const mcfs = useMcfs()
-const path = usePathStore()
-const entryList = useEntryListStore()
-
-const { isLoaded, availableSpace, hasUnsavedChanges } = storeToRefs(mcfs.state)
-const { entries } = storeToRefs(entryList)
-
-const newMemoryCard = async () => {
-  if (!await canDiscardUnsavedChanges('Create new memory card?'))
-    return
-
-  path.goToRoot()
-
-  const cardSpecs = mcfs.newCardInMemory()
-  if (!cardSpecs)
-    return
-
-  fileName.value = DEFAULT_FILENAME
-  entryList.refresh()
-}
-
-const openMemoryCardDialog = useFileDialog({
-  multiple: false,
-  reset: true,
-  accept: '.bin,.mcd,.mc2,.ps2',
-})
-
-const openMemoryCardFromFile = async () => {
-  if (!await canDiscardUnsavedChanges('Open new file?'))
-    return
-
-  openMemoryCardDialog.open()
-}
-
-openMemoryCardDialog.onChange(async (files) => {
-  if (!files || files.length !== 1)
-    return
-
-  const file = files.item(0)!
-
-  const isValidSize = isNonEccImage(file.size) || isEccImage(file.size)
-  if (!isValidSize) {
-    notifyWarning({ message: 'Invalid size, not a memory card image, or corrupted' })
-    return
-  }
-
-  path.goToRoot()
-
-  const buffer = await file.arrayBuffer()
-  const array = new Uint8Array(buffer)
-
-  if (!mcfs.openCardFromMemory(array))
-    return
-
-  fileName.value = file.name
-  entryList.refresh()
-})
-
-// region: save card
-
-const saveFileDiloague = useSaveFileDialog()
-const isSaveCardDialogueOpen = ref(false)
-const bytesExported = ref(0)
-const bytesToExport = ref(0)
-
-const openSaveCardDialogue = () => {
-  isSaveCardDialogueOpen.value = true
-}
-
-const saveMemoryCard = (name: string, withEcc: boolean) => {
-  try {
-    isWriting.value = true
-
-    const buffer = mcfs.saveCardToMemory({
-      withEcc,
-      onProgress: (bytesWritten, bytesToWrite) => {
-        bytesExported.value = bytesWritten
-        bytesToExport.value = bytesToWrite
-      }
-    })
-
-    if (!buffer)
-      return
-
-    saveFileDiloague.saveAsBlob(name, buffer)
-    fileName.value = name
-    isSaveCardDialogueOpen.value = false
-  } finally {
-    isWriting.value = false
-    bytesExported.value = 0
-    bytesToExport.value = 0
-  }
-
-}
-
-// endregion: save card
-
-const closeMemoryCard = async () => {
-  if (!await canDiscardUnsavedChanges('Close the card?'))
-    return
-
-  fileName.value = DEFAULT_FILENAME
-  path.goToRoot()
-  mcfs.closeCard()
-  entryList.set([])
-}
-
-const fileName = ref(DEFAULT_FILENAME)
-
-useMeta(() => ({
-  // titleTemplate doesn't work with reactive meta, *sigh*
-  title: mcfs.state.isLoaded ? `PS2 VMC - ${fileName.value}` : `PS2 VMC`
-}))
-
-// region: add file
-
-const pickFileDialog = useFileDialog({ multiple: true, reset: true })
-
-const isAddFileDialogueOpen = ref(false)
-const isWriting = ref(false)
-const filesToAdd = ref<FileToAdd[]>([])
-
-const openAddFileDialogue = () => {
-  isAddFileDialogueOpen.value = true
-  addFileToAddList()
-}
-
-const addFileToAddList = () => {
-  pickFileDialog.open()
-}
-
-pickFileDialog.onChange((fileList) => {
-  if (!fileList)
-    return
-
-  const files: File[] = []
-  for (const file of fileList) {
-    files.push(file)
-  }
-
-  const filesSize = files.reduce((total, item) => total + item.size, 0)
-  if (filesSize > availableSpace.value) {
-    notifyWarning({ message: `Not enough free space on the card` })
-    return
-  }
-
-  files.forEach(file => {
-    filesToAdd.value.push({ name: file.name, file })
-  })
-})
-
-const removeItemFromAddList = (idx: number) => {
-  filesToAdd.value.splice(idx, 1)
-}
-
-const clearFilesToAdd = () => {
-  filesToAdd.value = []
-}
-
-const addFilesToCard = async () => {
-  isWriting.value = true
-
-  for (let idx = 0; idx < filesToAdd.value.length; idx++) {
-    const file = filesToAdd.value[idx]!;
-
-    const filePath = path.join(file.name)
-    const contents = await file.file.bytes()
-    mcfs.writeFile({ path: filePath, data: contents })
-  }
-
-  entryList.refresh()
-
-  isWriting.value = false
-  isAddFileDialogueOpen.value = false
-  clearFilesToAdd()
-}
-
-const onDrop = async (items: File[] | null) => {
-  if (!isLoaded.value || !items)
-    return
-
-  const files: File[] = []
-  for (const item of items) {
-    if (!item.size) {
-      try {
-        await item.bytes()
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') {
-          // presumably directory, skip
-          continue
-        }
-
-        throw err
-      }
-    }
-
-    files.push(item)
-  }
-
-  const mapped: FileToAdd[] = files.map(file => ({ name: file.name, file } ))
-
-  if (isAddFileDialogueOpen.value) {
-    filesToAdd.value = filesToAdd.value.concat(mapped)
-  } else {
-    filesToAdd.value = mapped || []
-    isAddFileDialogueOpen.value = true
-  }
-}
-
-useDropZone(document, { onDrop, multiple: true, preventDefaultForUnhandled: true })
-
-// endregion: add file
-
-// region: psu import
-
-const openPsuFileDialog = useFileDialog({
-  multiple: false,
-  reset: true,
-  accept: '.psu',
-})
-const isImportPsuDialogueOpen = ref(false)
-const psu = ref<Psu>()
-const psuName = ref('')
-
-const openImportPsuDialog = () => {
-  openPsuFileDialog.open()
-}
-
-openPsuFileDialog.onChange(async (files) => {
-  if (!files || files.length !== 1)
-    return
-
-  const file = files.item(0)!
-  const contents = await file.bytes()
-
-  psuName.value = file.name
-  psu.value = readPsu(contents)
-  if (!psu.value)
-    return
-
-  const filesSize = psu.value.entries.reduce((total, entry) => total + entry.stat.size, 0)
-  if (filesSize > availableSpace.value) {
-    notifyWarning({ message: `Not enough free space on the card` })
-    return
-  }
-
-  isImportPsuDialogueOpen.value = true
-})
-
-watchEffect(() => {
-  if (isImportPsuDialogueOpen.value)
-    return
-
-  // unset .psu when closing the import dialog
-  psu.value = undefined
-})
-
-const importSelectedPsu = (overwrite: boolean) => {
-  if (!psu.value)
-    return
-
-  try {
-    isWriting.value = true
-    mcfs.importDirectoryFromPsu({ psu: psu.value, overwrite })
-    if (path.isRoot) entryList.refresh()
-  } finally {
-    isImportPsuDialogueOpen.value = false
-    isWriting.value = false
-  }
-}
-
-// endregion: psu import
-
-// region: mkdir
-
-const isMakeDirectoryDialogueOpen = ref(false)
-
-const openMakeDirectoryDialogue = () => {
-  isMakeDirectoryDialogueOpen.value = true
-}
-
-const createNewDirectory = (dirName: string) => {
-  const dirPath = path.join(dirName)
-  mcfs.createDirectory({ path: dirPath, existsOk: false })
-  entryList.refresh()
-}
-
-// endregion: mkdir
-
-const selectOrDeselectIcon = computed(() => entryList.isSelectedAll ? ICON_ENTRY_DESELECT_ALL : ICON_ENTRY_SELECT_ALL)
-
-const selectOrDeselectTitle = computed(() => entryList.isSelectedAll ? 'Deselect all' : 'Select all')
+import McfsToolbarVmcNew from 'components/McfsToolbarVmcNew.vue'
+import McfsToolbarVmcOpen from 'components/McfsToolbarVmcOpen.vue'
+import McfsToolbarVmcSave from 'components/McfsToolbarVmcSave.vue'
+import McfsToolbarVmcClose from 'components/McfsToolbarVmcClose.vue'
+import McfsToolbarImportFiles from 'components/McfsToolbarImportFiles.vue'
+import McfsToolbarImportPsu from 'components/McfsToolbarImportPsu.vue'
+import McfsToolbarMkdir from 'components/McfsToolbarMkdir.vue'
+import McfsToolbarVmcFileName from 'components/McfsToolbarVmcFileName.vue'
+import McfsToolbarSelectionToggle from 'components/McfsToolbarSelectionToggle.vue'
 </script>
 
 <style lang="css" scoped>

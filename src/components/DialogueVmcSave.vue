@@ -60,7 +60,6 @@
             </q-item>
           </q-list>
         </q-btn-dropdown>
-
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -78,7 +77,6 @@ const props = defineProps<{
   bytesExported: number
   bytesToExport: number
 }>()
-
 
 const isWriting = computed(() => props.bytesToExport > 0)
 

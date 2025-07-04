@@ -73,10 +73,10 @@
 </template>
 
 <script setup lang="ts">
-import { Psu } from 'src/lib/psu'
+import { type Psu } from 'lib/psu'
 import { formatBytes, joinPath } from 'lib/utils'
 import { computed } from 'vue'
-import McfsEntryItem from './McfsEntryItem.vue'
+import McfsEntryItem from 'components/McfsEntryItem.vue'
 import { usePathStore } from 'stores/path'
 import { useMcfs } from 'lib/ps2mc'
 import { useEntryListStore } from 'stores/entryList'
