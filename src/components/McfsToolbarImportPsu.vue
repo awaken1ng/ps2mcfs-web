@@ -53,7 +53,8 @@ openPsuFileDialog.onChange(async (files) => {
     return
 
   const file = files.item(0)!
-  const contents = await file.bytes()
+  const arrayBuffer = await file.arrayBuffer()
+  const contents = new Uint8Array(arrayBuffer)
 
   psuName.value = file.name
   psu.value = readPsu(contents)

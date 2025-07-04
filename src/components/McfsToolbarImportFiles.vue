@@ -83,8 +83,9 @@ const addFilesToCard = async () => {
     const file = filesToAdd.value[idx]!;
 
     const filePath = path.join(file.name)
-    const contents = await file.file.bytes()
-    mcfs.writeFile({ path: filePath, data: contents })
+    const arrayBuffer = await file.file.arrayBuffer()
+    const data = new Uint8Array(arrayBuffer)
+    mcfs.writeFile({ path: filePath, data })
   }
 
   entryList.refresh()
@@ -100,17 +101,19 @@ const onDrop = async (items: File[] | null) => {
 
   const files: File[] = []
   for (const item of items) {
-    if (!item.size) {
-      try {
-        await item.bytes()
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') {
-          // presumably directory, skip
-          continue
-        }
-
-        throw err
+    // .size returns zero in Firefox, but non-zero value in Chrome,
+    // so can't be relied upon to tell directories apart
+    const stream = item.stream()
+    const reader = stream.getReader()
+    try {
+      await reader.read()
+    } catch (err) {
+      if (err instanceof TypeError) {
+        // presumably directory, skip
+        continue
       }
+
+      throw err
     }
 
     files.push(item)
