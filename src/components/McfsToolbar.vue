@@ -61,10 +61,6 @@ import McfsToolbarSelectionToggle from 'components/McfsToolbarSelectionToggle.vu
   gap: 6px;
 }
 
-.toolbar-secondary .file-name {
-  word-break: break-all;
-}
-
 @media (min-width: 500px) {
   .toolbar-secondary { flex-direction: row; }
 }
