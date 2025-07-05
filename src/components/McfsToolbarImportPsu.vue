@@ -89,7 +89,7 @@ const importSelectedPsu = (overwrite: boolean) => {
   try {
     isWriting.value = true
     mcfs.importDirectoryFromPsu({ psu: psu.value, overwrite })
-    if (path.isRoot) entryList.refresh()
+    entryList.refresh()
   } finally {
     isImportPsuDialogueOpen.value = false
     isWriting.value = false
