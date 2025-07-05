@@ -1,6 +1,6 @@
 <template>
   <q-btn
-    flat no-caps no-wrap :icon="ICON_VMC_SAVE" label="Save as" data-cy="toolbar-saveAs"
+    flat no-caps no-wrap :icon="ICON_VMC_SAVE" label="Save as" data-cy="toolbar-vmc-saveAs"
     @click="openSaveCardDialogue" :disable="!isLoaded"
   />
 

@@ -1,7 +1,7 @@
 <template>
   <q-btn
     flat no-caps no-wrap
-    :icon="selectOrDeselectIcon" :label="selectOrDeselectTitle" data-cy="toolbar-toggleSelect"
+    :icon="selectOrDeselectIcon" :label="selectOrDeselectTitle" data-cy="toolbar-selectionToggle"
     @click="entryList.toggleSelectionAll" :disabled="!isLoaded || !entries.length"
   />
 </template>

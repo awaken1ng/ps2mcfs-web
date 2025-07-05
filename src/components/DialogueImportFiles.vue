@@ -78,6 +78,7 @@
           @click="emit('addToCard')"
           :disable="!filesToAdd.length || !areNamesValid || isWriting"
           :loading="isWriting"
+          data-cy="dialog-import-files-import"
         />
       </q-card-actions>
     </q-card>

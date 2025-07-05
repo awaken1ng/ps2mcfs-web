@@ -1,9 +1,9 @@
 <template>
-  <div v-if="isLoaded" class="text-break" data-cy="filename">
-    <span>{{ fileName }}</span>
+  <div v-if="isLoaded" class="text-break">
+    <span data-cy="toolbar-vmc-fileName">{{ fileName }}</span>
     <span v-if="hasUnsavedChanges" class="non-selectable"> *</span>
   </div>
-  <q-skeleton v-else animation="none" width="10rem" data-cy="file-name-skeleton" />
+  <q-skeleton v-else animation="none" width="10rem" data-cy="toolbar-vmc-fileName-skeleton" />
 </template>
 
 <script setup lang="ts">

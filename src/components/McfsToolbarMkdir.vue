@@ -1,6 +1,6 @@
 <template>
   <q-btn
-    flat no-caps no-wrap :icon="ICON_VMC_MKDIR" label="Create new directory" data-cy="toolbar-createDirectory"
+    flat no-caps no-wrap :icon="ICON_VMC_MKDIR" label="Create new directory" data-cy="toolbar-mkdir"
     @click="openMakeDirectoryDialogue" :disabled="!isLoaded || !path.isRoot"
   />
 

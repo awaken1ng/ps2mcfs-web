@@ -1,16 +1,28 @@
 import registerCodeCoverageTasks from '@cypress/code-coverage/task'
 import { injectQuasarDevServerConfig } from '@quasar/quasar-app-extension-testing-e2e-cypress/cct-dev-server'
 import { defineConfig } from 'cypress'
+import { rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 export default defineConfig({
   fixturesFolder: 'test/cypress/fixtures',
   screenshotsFolder: 'test/cypress/screenshots',
   videosFolder: 'test/cypress/videos',
+  downloadsFolder: join(tmpdir(), 'cypress', 'downloads'),
   video: true,
   e2e: {
     setupNodeEvents(on, config) {
-      registerCodeCoverageTasks(on, config);
-      return config;
+      registerCodeCoverageTasks(on, config)
+
+      on('task', {
+        rmdir: (path) => {
+          rmSync(path, { recursive: true, force: true })
+          return null
+        }
+      })
+
+      return config
     },
     baseUrl: 'http://localhost:8080/',
     supportFile: 'test/cypress/support/e2e.ts',

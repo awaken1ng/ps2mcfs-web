@@ -29,6 +29,7 @@
             autofocus
             bottom-slots
             counter
+            data-cy="dialog-vmc-save-fileName"
           >
             <template v-slot:before>
               <q-icon :name="ICON_ENTRY_FILE" />
@@ -51,9 +52,14 @@
           color="primary"
           label="Save without ECC"
           @click="saveCard(false)"
+          data-cy="dialog-vmc-save-withoutEcc"
         >
           <q-list>
-            <q-item clickable @click="saveCard(true)">
+            <q-item
+              clickable
+              @click="saveCard(true)"
+              data-cy="dialog-vmc-save-withEcc"
+            >
               <q-item-section>
                 <q-item-label>Save with ECC</q-item-label>
               </q-item-section>

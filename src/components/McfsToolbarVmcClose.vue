@@ -1,6 +1,6 @@
 <template>
   <q-btn
-    flat no-caps no-wrap :icon="ICON_VMC_CLOSE" label="Close" data-cy="toolbar-close"
+    flat no-caps no-wrap :icon="ICON_VMC_CLOSE" label="Close" data-cy="toolbar-vmc-close"
     @click="closeMemoryCard" :disable="!isLoaded"
   />
 </template>

@@ -5,8 +5,10 @@
     label="Import .psu"
     @click="openImportPsuDialog"
     :disable="!isLoaded"
-    data-cy="toolbar-importPsu"
+    data-cy="toolbar-import-psu"
   />
+
+  <input type="file" hidden ref="input" data-cy="toolbar-import-psu-input" @change="onChange">
 
   <DialogueImportPsu
     v-model="isImportPsuDialogueOpen"
@@ -19,12 +21,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
+import { ref, useTemplateRef, watchEffect } from 'vue'
 import DialogueImportPsu from 'components/DialogueImportPsu.vue'
 import { useMcfs } from 'lib/ps2mc'
 import { notifyWarning } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'
-import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
 import { useFileDialog } from '@vueuse/core'
 import { type Psu, readPsu } from 'src/lib/psu'
@@ -32,14 +33,16 @@ import { ICON_VMC_IMPORT_PSU } from 'lib/icon'
 
 const mcfs = useMcfs()
 const entryList = useEntryListStore()
-const path = usePathStore()
 
 const { isLoaded, availableSpace } = storeToRefs(mcfs.state)
+
+const input = useTemplateRef('input')
 
 const openPsuFileDialog = useFileDialog({
   multiple: false,
   reset: true,
   accept: '.psu',
+  input: input.value!,
 })
 
 const isImportPsuDialogueOpen = ref(false)
@@ -48,7 +51,14 @@ const openImportPsuDialog = () => {
   openPsuFileDialog.open()
 }
 
-openPsuFileDialog.onChange(async (files) => {
+const onChange = () => {
+  if (!input.value)
+    return
+
+  importPsu(input.value.files)
+}
+
+const importPsu = async (files: FileList | null) => {
   if (!files || files.length !== 1)
     return
 
@@ -68,7 +78,9 @@ openPsuFileDialog.onChange(async (files) => {
   }
 
   isImportPsuDialogueOpen.value = true
-})
+}
+
+openPsuFileDialog.onChange(importPsu)
 
 const isWriting = ref(false)
 const psu = ref<Psu>()

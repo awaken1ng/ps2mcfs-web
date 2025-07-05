@@ -1,6 +1,6 @@
 <template>
   <q-btn
-    flat no-caps no-wrap :icon="ICON_VMC_NEW" label="New" data-cy="toolbar-new"
+    flat no-caps no-wrap :icon="ICON_VMC_NEW" label="New" data-cy="toolbar-vmc-new"
     @click="newMemoryCard"
   />
 </template>

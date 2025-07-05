@@ -58,9 +58,15 @@
           color="primary"
           label="Import without overwrite"
           @click="emit('import', false)"
+          data-cy="dialog-import-psu-withoutOverwite"
         >
           <q-list>
-            <q-item clickable v-close-popup @click="emit('import', true)">
+            <q-item
+              clickable
+              v-close-popup
+              @click="emit('import', true)"
+              data-cy="dialog-import-psu-withOverwite"
+            >
               <q-item-section>
                 <q-item-label>Import with overwrite</q-item-label>
               </q-item-section>

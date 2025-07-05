@@ -1,8 +1,10 @@
 <template>
   <q-btn
-    flat no-caps no-wrap :icon="ICON_VMC_IMPORT_FILE" label="Add files" data-cy="toolbar-addFile"
+    flat no-caps no-wrap :icon="ICON_VMC_IMPORT_FILE" label="Add files" data-cy="toolbar-import-files"
     @click="openAddFileDialogue" :disabled="!isLoaded"
   />
+
+  <input type="file" hidden ref="input" data-cy="toolbar-import-files-input" @change="onChange">
 
   <DialogueImportFiles
     v-model="isAddFileDialogueOpen"
@@ -17,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 import DialogueImportFiles, { type FileToAdd } from 'components/DialogueImportFiles.vue'
 import { notifyWarning } from 'lib/utils'
 import { useDropZone, useFileDialog } from '@vueuse/core'
@@ -33,7 +35,13 @@ const entryList = useEntryListStore()
 
 const { isLoaded, availableSpace } = storeToRefs(mcfs.state)
 
-const pickFileDialog = useFileDialog({ multiple: true, reset: true })
+const input = useTemplateRef('input')
+
+const pickFileDialog = useFileDialog({
+  multiple: true,
+  reset: true,
+  input: input.value!,
+})
 
 const isAddFileDialogueOpen = ref(false)
 const isWriting = ref(false)
@@ -48,7 +56,7 @@ const addFileToAddList = () => {
   pickFileDialog.open()
 }
 
-pickFileDialog.onChange((fileList) => {
+const importFiles = (fileList: FileList | null) => {
   if (!fileList)
     return
 
@@ -66,7 +74,16 @@ pickFileDialog.onChange((fileList) => {
   files.forEach(file => {
     filesToAdd.value.push({ name: file.name, file })
   })
-})
+}
+
+const onChange = () => {
+  if (!input.value)
+    return
+
+  importFiles(input.value.files)
+}
+
+pickFileDialog.onChange(importFiles)
 
 const removeItemFromAddList = (idx: number) => {
   filesToAdd.value.splice(idx, 1)
