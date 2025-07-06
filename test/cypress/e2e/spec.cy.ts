@@ -409,11 +409,24 @@ describe('Main', () => {
     cy.dataCy('entry-up').click()
     app.expectEntryMenuToBeClosed()
 
-    // should close when going up
+    // should close first when clicking on up entry
     app.entry(name1).click()
     app.entryMenu('aaa-empty')
     cy.dataCy('entry-up').click()
+    app.entryByName('aaa-empty').should('exist')
     app.expectEntryMenuToBeClosed()
+    cy.dataCy('entry-up').click()
+
+    // should close when going back in history or navigating via router
+    app.entry(name1).click()
+    app.entryMenu('aaa-empty')
+    cy.go('back')
+    app.expectEntryMenuToBeClosed()
+
+    // should close menu first when clicking on toolbar items
+    app.entryMenu(name1)
+    app.newCard()
+    app.entryByName(name1).should('exist')
   })
 
   it('navigates correctly', () => {
