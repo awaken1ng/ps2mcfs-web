@@ -200,8 +200,10 @@ onClickOutside((event: Event) => {
     el = el.parentElement
   }
 
-  if (isMenuOpen.value)
+  if (isMenuOpen.value) {
     closeEntryMenu()
+    event.stopPropagation()
+  }
 })
 
 // endregion: menu

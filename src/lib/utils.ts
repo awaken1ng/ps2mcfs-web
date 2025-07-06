@@ -74,13 +74,13 @@ export const onBeforeUnload = (handler: (event: BeforeUnloadEvent) => void) => {
 
 export const onClickOutside = (handler: (event: Event) => void) => {
   onMounted(() => {
-    document.addEventListener('click', handler)
-    document.addEventListener('touchend', handler)
+    document.addEventListener('click', handler, true)
+    document.addEventListener('touchend', handler, true)
   })
 
   onUnmounted(() => {
-    document.removeEventListener('click', handler)
-    document.removeEventListener('touchend', handler)
+    document.removeEventListener('click', handler, true)
+    document.removeEventListener('touchend', handler, true)
   })
 }
 
