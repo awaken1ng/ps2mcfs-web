@@ -206,6 +206,12 @@ onClickOutside((event: Event) => {
   }
 })
 
+watch(() => path.current, () => {
+  if (isMenuOpen.value) {
+    closeEntryMenu()
+  }
+})
+
 // endregion: menu
 
 // region: save
