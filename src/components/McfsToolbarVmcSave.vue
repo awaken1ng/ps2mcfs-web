@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import DialogueVmcSave from 'components/DialogueVmcSave.vue'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { useSaveFileDialog } from 'lib/file'
 import { storeToRefs } from 'pinia'
 import { ICON_VMC_SAVE } from 'lib/icon'

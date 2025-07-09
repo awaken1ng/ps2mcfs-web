@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { isFileEntry, isDirectoryEntry } from 'lib/ps2mc'
+import { isFileEntry, isDirectoryEntry } from 'lib/mcfs/attributes'
 import McfsEntryIcon from 'components/McfsEntryIcon.vue'
 import { QMenu } from 'quasar'
 import { useEntryListStore } from 'stores/entryList'

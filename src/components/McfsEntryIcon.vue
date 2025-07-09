@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { isDirectoryEntry } from 'lib/ps2mc'
+import { isDirectoryEntry } from 'lib/mcfs/attributes'
 import { ICON_ENTRY_FILE, ICON_ENTRY_FILE_SELECTED, ICON_ENTRY_FOLDER, ICON_ENTRY_FOLDER_SELECTED } from 'lib/icon'
 import { useEntryListStore } from 'stores/entryList'
 import { computed } from 'vue'

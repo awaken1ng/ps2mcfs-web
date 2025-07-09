@@ -10,7 +10,7 @@ import { storeToRefs } from 'pinia'
 import { DEFAULT_VMC_FILE_NAME } from 'stores/mcfs'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { canDiscardUnsavedChanges } from 'lib/utils'
 import { ICON_VMC_NEW } from 'lib/icon'
 

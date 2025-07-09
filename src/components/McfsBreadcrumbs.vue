@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
 import { ICON_BREADCRUMB_ARROW } from 'lib/icon'

@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { canDiscardUnsavedChanges } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'

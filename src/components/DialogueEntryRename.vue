@@ -45,7 +45,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MAX_NAME_LENGTH, isEntryNameLegal, isFileEntry } from 'lib/ps2mc'
+import { isEntryNameLegal, MAX_NAME_LENGTH } from 'lib/mcfs/utils'
+import { isFileEntry } from 'lib/mcfs/attributes'
 import { useEntryListStore } from 'stores/entryList'
 import { type McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 import { ICON_ENTRY_FOLDER } from 'lib/icon'

@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { joinPath } from 'lib/utils'
+import { joinPath } from 'lib/mcfs/utils'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 

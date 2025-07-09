@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
 import { ICON_ENTRY_DESELECT_ALL, ICON_ENTRY_SELECT_ALL } from 'lib/icon'

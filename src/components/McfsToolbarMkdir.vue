@@ -13,7 +13,7 @@
 import { ref } from 'vue'
 import DialogueMkdir from 'components/DialogueMkdir.vue'
 import { ICON_VMC_MKDIR } from 'lib/icon'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'
 

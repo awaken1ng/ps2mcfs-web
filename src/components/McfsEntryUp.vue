@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { formatBytes } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'

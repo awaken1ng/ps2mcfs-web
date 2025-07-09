@@ -50,8 +50,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MAX_NAME_LENGTH, isEntryNameLegal, isFileEntry } from 'lib/ps2mc'
-import { useMcfs } from 'lib/ps2mc'
+import { isEntryNameLegal, MAX_NAME_LENGTH } from 'lib/mcfs/utils'
+import { isFileEntry } from 'lib/mcfs/attributes'
+import { useMcfs } from 'lib/mcfs'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
 import { ICON_ENTRY_FOLDER } from 'lib/icon'
@@ -98,7 +99,7 @@ const makeDirectory = () => {
     return
 
   const dirPath = path.join(name.value)
-  mcfs.createDirectory({ path: dirPath, existsOk: false })
+  mcfs.createDirectory({ dirPath: dirPath, existsOk: false })
   entryList.refresh()
   name.value = ''
   emit('update:modelValue', false)

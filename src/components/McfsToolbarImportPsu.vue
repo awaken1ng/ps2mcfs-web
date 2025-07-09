@@ -23,12 +23,12 @@
 <script setup lang="ts">
 import { ref, useTemplateRef, watchEffect } from 'vue'
 import DialogueImportPsu from 'components/DialogueImportPsu.vue'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { notifyWarning } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
 import { useFileDialog } from '@vueuse/core'
-import { type Psu, readPsu } from 'src/lib/psu'
+import { readPsu, type Psu } from 'src/lib/mcfs/ops/psu'
 import { ICON_VMC_IMPORT_PSU } from 'lib/icon'
 
 const mcfs = useMcfs()

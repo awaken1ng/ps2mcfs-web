@@ -24,7 +24,7 @@ import DialogueImportFiles, { type FileToAdd } from 'components/DialogueImportFi
 import { notifyWarning } from 'lib/utils'
 import { useDropZone, useFileDialog } from '@vueuse/core'
 import { ICON_VMC_IMPORT_FILE } from 'lib/icon'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'

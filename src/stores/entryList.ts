@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { computed, readonly, ref } from 'vue'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
 import { usePathStore } from 'stores/path'
 import { McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 
@@ -67,7 +67,7 @@ export const useEntryListStore = () => {
   const path = usePathStore()
 
   const refresh = () => {
-    entryList.set(mcfs.readDirectory(path.current))
+    entryList.set(mcfs.readDirectory({ dirPath: path.current }) || [])
     entryList.deselectAll()
   }
 

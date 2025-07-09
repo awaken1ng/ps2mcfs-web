@@ -87,7 +87,8 @@
 
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from 'vue'
-import { isEntryNameLegal, isFileEntry, MAX_NAME_LENGTH } from 'lib/ps2mc'
+import { isEntryNameLegal, MAX_NAME_LENGTH } from 'lib/mcfs/utils'
+import { isFileEntry } from 'lib/mcfs/attributes'
 import { formatBytes } from 'lib/utils'
 import { type QInput } from 'quasar'
 import { useEntryListStore } from 'stores/entryList'

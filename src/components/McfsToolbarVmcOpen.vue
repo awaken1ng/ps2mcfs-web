@@ -8,7 +8,8 @@
 </template>
 
 <script setup lang="ts">
-import { isEccImage, isNonEccImage, useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
+import { isEccImage, isNonEccImage } from 'lib/mcfs/ops/card'
 import { canDiscardUnsavedChanges, notifyWarning } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
@@ -56,7 +57,7 @@ const openCardFromFile = async (files: FileList | null) => {
   const buffer = await file.arrayBuffer()
   const array = new Uint8Array(buffer)
 
-  if (!mcfs.openCardFromMemory(array))
+  if (!mcfs.openCardFromMemory({ vmc: array}))
     return
 
   fileName.value = file.name

@@ -55,13 +55,6 @@ export const itemsForm = (n: number) => {
 
 export const pluralizeItems = (n: number) => `${n} ${itemsForm(n)}`
 
-export const joinPath = (a: string, b: string) => {
-  if (a[a.length - 1] !== '/')
-    a += '/'
-  a += b
-  return a
-}
-
 export const onBeforeUnload = (handler: (event: BeforeUnloadEvent) => void) => {
   onMounted(() => {
     document.addEventListener('beforeunload', handler)

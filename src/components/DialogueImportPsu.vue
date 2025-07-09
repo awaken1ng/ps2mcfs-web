@@ -79,12 +79,13 @@
 </template>
 
 <script setup lang="ts">
-import { type Psu } from 'lib/psu'
-import { formatBytes, joinPath } from 'lib/utils'
+import { Psu } from 'src/lib/mcfs/ops/psu'
+import { formatBytes } from 'lib/utils'
 import { computed } from 'vue'
 import McfsEntryItem from 'components/McfsEntryItem.vue'
 import { usePathStore } from 'stores/path'
-import { useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
+import { joinPath } from 'lib/mcfs/utils'
 import { useEntryListStore } from 'stores/entryList'
 
 const props = defineProps<{
@@ -111,14 +112,14 @@ const rootEntries = computed(() => {
   if (path.isRoot)
     return entryList.entries
 
-  return mcfs.readDirectory('/')
+  return mcfs.readDirectory({ dirPath: '/' }) || []
 })
 
 const dirEntries = computed(() => {
   if (!props.psu)
     return []
 
-  return mcfs.readDirectory(joinPath('/', props.psu.directory.name))
+  return mcfs.readDirectory({ dirPath: joinPath('/', props.psu.directory.name) }) || []
 })
 
 const isDirAlreadyPresent = computed(() => {

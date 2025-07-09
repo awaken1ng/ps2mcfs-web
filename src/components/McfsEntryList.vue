@@ -74,9 +74,11 @@ import McfsEntryUp from 'components/McfsEntryUp.vue'
 import McfsEntryItem from 'components/McfsEntryItem.vue'
 import McfsEntryMenu from 'components/McfsEntryMenu.vue'
 import DialogueEntryRename from 'components/DialogueEntryRename.vue'
-import { isDirectoryEntry, useMcfs } from 'lib/ps2mc'
+import { useMcfs } from 'lib/mcfs'
+import { isDirectoryEntry } from 'lib/mcfs/attributes'
+import { joinPath } from 'lib/mcfs/utils'
 import { useSaveFileDialog } from 'lib/file'
-import { dialogNoTransition, dialogSaveAs, joinPath, onClickOutside, pluralizeItems } from 'lib/utils'
+import { dialogNoTransition, dialogSaveAs, onClickOutside, pluralizeItems } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
@@ -219,7 +221,7 @@ watch(() => path.current, () => {
 const saveFile = (entry: McEntryInfo) => {
   closeEntryMenu()
 
-  const contents = mcfs.readFile(path.current, entry)
+  const contents = mcfs.readFileEntry({ root: path.current, entry })
   if (!contents)
     return
 
@@ -237,7 +239,7 @@ const exportPsu = (entry: McEntryInfo) => {
     return
 
   const dirPath = joinPath('/', entry.name)
-  const psu = mcfs.exportDirectoryAsPsu({ path: dirPath })
+  const psu = mcfs.exportDirectoryAsPsu({ dirPath: dirPath })
   if (!psu)
     return
 
@@ -282,7 +284,7 @@ const renameEntryFromMenu = (newName: string) => {
   if (!renamedEntry.value)
     return
 
-  mcfs.renameEntry(path.current, renamedEntry.value, newName)
+  mcfs.renameEntry({ root: path.current,  entry: renamedEntry.value, newName })
   entryList.refresh()
 }
 
@@ -308,7 +310,7 @@ const deleteEntryFromMenu = (entries: McEntryInfo[]) => {
     message,
     cancel: true,
   }).onOk(() => {
-    entries.forEach(entry => mcfs.deleteEntry(path.current, entry))
+    entries.forEach(entry => mcfs.deleteEntry({ root: path.current, entry }))
     entryList.refresh()
   })
 }

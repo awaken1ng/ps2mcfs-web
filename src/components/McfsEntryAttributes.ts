@@ -2,7 +2,7 @@ import { type McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 import {
   isEntryReadable, isEntryWriteable, isEntryExecutale, isEntryProtected,
   isEntryHidden, isPs1Save, isPocketStationSave,
-} from 'lib/ps2mc'
+} from 'lib/mcfs/attributes'
 import { computed, h } from 'vue'
 
 type Props = {
