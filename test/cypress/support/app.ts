@@ -64,8 +64,10 @@ const importPsuFromFixturesWithOverwrite = (path: string) => {
   cy.dataCy('dialog-import-psu-withOverwite').click()
 }
 
-const mkdir = (name: string) => {
+const mkdir = (name: string, nested = false) => {
   cy.log(`creaing new directory ${name}`)
+  if (nested) cy.location('href').then(href => cy.visit(href + '?allowCreatingSubdirectories'))
+
   cy.dataCy('toolbar-mkdir').click()
   cy.withinDialog(() => {
     cy.contains('New directory name:')
@@ -75,6 +77,8 @@ const mkdir = (name: string) => {
 
   // ensure the created directory is in the item list
   getEntryByName(name).should('exist')
+
+  if (nested) cy.go('back') // clear the QS
 }
 
 const fileName = () => cy.dataCy('toolbar-vmc-fileName')
