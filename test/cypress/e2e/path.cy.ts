@@ -4,32 +4,48 @@ describe('Path', () => {
   beforeEach(() => {
     cy.visit('/')
     cy.contains('No card loaded').should('exist')
+    app.newCard()
+    app.mkdir('foo')
+    app.entry('foo').click()
+    app.mkdir('bar', true)
+    app.entry('bar').click()
+    app.mkdir('baz', true)
+    app.entry('baz').click()
+    cy.contains('No items')
   })
 
-  it('navigates correctly', () => {
-    app.openCardFromFixtures('cards/foo-bar-baz.mcd')
-
-    // entry up
-    app.entry('foo').click()
-    app.entryByName('aaa-empty').should('exist')
-    cy.dataCy('entry-up').click() // go back
-    app.entryByName('foo').should('exist')
-
-    // breadcrumbs root
-    app.entry('bar').click()
-    app.entryByName('aaa-unaligned').should('exist')
-    cy.dataCy('breadcrumbs-root').click()
+  it('navigates with entry up', () => {
+    cy.dataCy('entry-up').click()
+    app.entryByName('baz').should('exist')
+    cy.dataCy('entry-up').click()
     app.entryByName('bar').should('exist')
+    cy.dataCy('entry-up').click()
+    app.entryByName('foo').should('exist')
+  })
 
-    // going back
-    app.entry('baz').click()
-    app.entryByName('aaa-aligned').should('exist')
+  it('navigates with breadcrumbs', () => {
+    cy.dataCy('breadcrumbs-crumb').contains('bar').click()
+    app.entryByName('baz').should('exist')
+    cy.dataCy('breadcrumbs-crumb').contains('foo').click()
+    app.entryByName('bar').should('exist')
+    cy.dataCy('breadcrumbs-root').click()
+    app.entryByName('foo').should('exist')
+  })
+
+  it('navigates with back button', () => {
     cy.go('back')
     app.entryByName('baz').should('exist')
+    cy.go('back')
+    app.entryByName('bar').should('exist')
+    cy.go('back')
+    app.entryByName('foo').should('exist')
+  })
 
-    // router
+  it('navigates with router', () => {
+    cy.visit('#/foo/bar')
+    app.entryByName('baz').should('exist')
     cy.visit('#/foo')
-    app.entryByName('aaa-empty').should('exist')
+    app.entryByName('bar').should('exist')
     cy.visit('#/')
     app.entryByName('foo').should('exist')
   })

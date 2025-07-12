@@ -6,8 +6,8 @@
   >
     <McfsEntryUp
       data-cy="entry-up"
-      @click.prevent="closeEntryMenuIfInRoot"
-      @touchend.prevent="closeEntryMenuIfInRoot"
+      @click.prevent="goUp"
+      @touchend.prevent="goUp"
     />
 
     <q-item
@@ -160,13 +160,13 @@ const updateMenuPosition = () => {
   menu.value?.qmenu?.updatePosition()
 }
 
-const closeEntryMenuIfInRoot = () => {
+const goUp = () => {
   if (path.isRoot || isMenuOpen.value) {
     closeEntryMenu()
     return
   }
 
-  path.goToRoot()
+  path.goUp()
 }
 
 const closeEntryMenu = () => {
