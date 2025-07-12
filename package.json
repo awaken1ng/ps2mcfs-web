@@ -1,7 +1,7 @@
 {
   "name": "ps2mcfs-web",
   "version": "0.0.1",
-  "description": "A Quasar Project",
+  "description": "PS2 virtual memory card editor",
   "productName": "PS2 VMC",
   "author": "awakening <sunlightlucid@gmail.com>",
   "type": "module",
