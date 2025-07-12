@@ -71,13 +71,15 @@ import { formatBytes, pluralizeItems } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'
 import { computed } from 'vue'
 import { ICON_ENTRY_MENU } from 'lib/icon'
+import { type QItemProps } from 'quasar'
 
-const props = defineProps<{
+interface Props extends QItemProps {
   readonly entry: McEntryInfo,
-  clickable: boolean,
   menu: boolean,
   errorMessage?: string | undefined,
-}>()
+}
+
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (event: 'toggleSelection', entry: McEntryInfo): void
