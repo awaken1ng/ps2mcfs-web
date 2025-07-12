@@ -1,5 +1,6 @@
 <template>
   <!-- deliberately stub @update:model-value -->
+  <!-- if its present QMenu doesn't use internal model value management, which is what we want -->
   <q-menu
     v-if="entry"
     ref="qmenu"
@@ -9,7 +10,7 @@
     :target="target"
     anchor="bottom end" self="top end"
     transition-duration="0"
-    @escape-key="emit('escapeKey')"
+    @escape-key="close"
   >
     <!-- if there are multiple entries selected, show "Selected N items" -->
     <q-item v-if="entryList.selected.size >= 2" class="entry" >
@@ -37,94 +38,44 @@
 
     <q-separator />
 
-    <q-item
-      v-if="isSelectedNoneOrOne && isFileEntry(entry)"
-      clickable @click="emit('saveFile', entry)"
-      data-cy="entry-menu-saveFile"
-    >
-      <q-item-section>Save file</q-item-section>
-    </q-item>
-
-    <q-item
-      v-if="path.isRoot && isSelectedNoneOrOne && isDirectoryEntry(entry)"
-      clickable @click="emit('exportPsu', entry)"
-      data-cy="entry-menu-exportPsu"
-    >
-      <q-item-section>Export as .psu</q-item-section>
-    </q-item>
-
-    <q-item
-      v-if="isSelectedNoneOrOne"
-      clickable @click="emit('copyName', entry)"
-      data-cy="entry-menu-copyName"
-    >
-      <q-item-section>Copy name</q-item-section>
-    </q-item>
-
-    <q-item
-      v-if="isSelectedNoneOrOne"
-      clickable @click="emit('rename', entry)"
-      data-cy="entry-menu-rename"
-    >
-      <q-item-section>Rename</q-item-section>
-    </q-item>
-
-    <q-item
-      clickable @click="emitDelete"
-      data-cy="entry-menu-delete"
-    >
-      <q-item-section>Delete</q-item-section>
-    </q-item>
+    <McfsEntryMenuSaveFile :entry @click="close" />
+    <McfsEntryMenuExportPsu :entry @click="close" />
+    <McfsEntryMenuCopyName :entry @click="close" />
+    <McfsEntryMenuRenameEntry :entry @click="close" />
+    <McfsEntryMenuDeleteEntry :entry @click="close" />
   </q-menu>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { isFileEntry, isDirectoryEntry } from 'lib/mcfs/attributes'
+import { ref } from 'vue'
 import McfsEntryIcon from 'components/McfsEntryIcon.vue'
+import McfsEntryMenuSaveFile from 'components/McfsEntryMenuSaveFile.vue'
+import McfsEntryMenuExportPsu from 'components/McfsEntryMenuExportPsu.vue'
+import McfsEntryMenuCopyName from 'components/McfsEntryMenuCopyName.vue'
+import McfsEntryMenuRenameEntry from 'components/McfsEntryMenuRenameEntry.vue'
+import McfsEntryMenuDeleteEntry from 'components/McfsEntryMenuDeleteEntry.vue'
 import { QMenu } from 'quasar'
 import { useEntryListStore } from 'stores/entryList'
 import { itemsForm } from 'lib/utils'
-import { usePathStore } from 'stores/path'
 import { McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 
-const props = defineProps<{
+defineProps<{
   modelValue: boolean,
   entry: McEntryInfo | undefined,
   target: HTMLDivElement | undefined,
 }>()
 
 const emit = defineEmits<{
-  (event: 'saveFile', entry: McEntryInfo): void
-  (event: 'exportPsu', entry: McEntryInfo): void
-  (event: 'copyName', entry: McEntryInfo): void
-  (event: 'rename', entry: McEntryInfo): void
-  (event: 'delete', entry: McEntryInfo[]): void
-  (event: 'escapeKey'): void
+  (event: 'close'): void
 }>()
 
 const entryList = useEntryListStore()
-const path = usePathStore()
 
-const isSelectedNoneOrOne = computed(() => entryList.selected.size <= 1)
-
-const emitDelete = () => {
-  if (!props.entry)
-    return
-
-  const selected: McEntryInfo[] = []
-
-  if (isSelectedNoneOrOne.value) {
-    selected.push(props.entry)
-  } else {
-    entryList.selected.forEach(entry => selected.push(entry))
-  }
-
-  emit('delete', selected)
-}
+const close = () => emit('close')
 
 const qmenu = ref<QMenu>()
 
+// expose QMenu to be able to call `updatePosition`
 defineExpose({
   qmenu
 })

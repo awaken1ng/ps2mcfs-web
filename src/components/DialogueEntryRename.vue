@@ -1,8 +1,8 @@
 <template>
   <q-dialog
-    :model-value="modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
+    :model-value="payload !== undefined"
     transition-duration="0"
+    @hide="hide"
   >
     <q-card class="q-dialog-plugin">
       <q-card-section class="q-dialog__title">
@@ -13,7 +13,7 @@
         New {{ entryType }} name:
 
         <q-input
-          v-model="newName"
+          v-model="name"
           dense
           autofocus
           bottom-slots
@@ -44,33 +44,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { isEntryNameLegal, MAX_NAME_LENGTH } from 'lib/mcfs/utils'
 import { isFileEntry } from 'lib/mcfs/attributes'
 import { useEntryListStore } from 'stores/entryList'
 import { type McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 import { ICON_ENTRY_FOLDER } from 'lib/icon'
 
-const props = defineProps<{
-  modelValue: boolean,
-  entry: McEntryInfo | undefined,
-}>()
-
-const emit = defineEmits<{
-  (event: 'update:modelValue', value: boolean): void
-  (event: 'renameEntry', newName: string): void
-}>()
-
 const entryList = useEntryListStore()
 
-const newName = ref('')
+const name = ref('')
 
 const nameInvalidReason = computed(() => {
-  const reason = isEntryNameLegal(newName.value)
+  const reason = isEntryNameLegal(name.value)
   if (reason !== true)
     return reason
 
-  const entryWithSameName = entryList.entries.find(entry => entry.name === newName.value)
+  const entryWithSameName = entryList.entries.find(entry => entry.name === name.value)
   if (entryWithSameName)
     return (isFileEntry(entryWithSameName) ? 'File' : 'Directory') + ' with same name already exists'
 
@@ -79,22 +69,37 @@ const nameInvalidReason = computed(() => {
 
 const isNameValid = computed(() => nameInvalidReason.value === undefined)
 
-watch(props, () => {
-  if (props.modelValue) {
-    newName.value = props.entry!.name
-  }
+interface Payload {
+  entry: McEntryInfo,
+  onOk: (newName: string) => void,
+}
+
+const payload = ref<Payload>()
+
+const show = (showPayload: Payload) => {
+  name.value = showPayload.entry.name
+  payload.value = showPayload
+}
+
+const hide = () => {
+  payload.value = undefined
+}
+
+defineExpose({
+  show,
+  hide
 })
 
 const renameEntry = () => {
-  emit('renameEntry', newName.value)
-  newName.value = ''
+  payload.value?.onOk(name.value)
+  hide()
 }
 
 const entryType = computed(() =>  {
-  if (!props.entry)
+  if (!payload.value?.entry)
     return ''
 
-  if (isFileEntry(props.entry))
+  if (isFileEntry(payload.value.entry))
     return 'file'
 
   return 'directory'

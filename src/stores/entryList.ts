@@ -17,6 +17,8 @@ const useStore = defineStore('entryList', () => {
 
   const isSelectedAll = computed(() => selected.value.size === entries.value.length)
 
+  const isSelectedNoneOrOne = computed(() => selected.value.size <= 1)
+
   const isSelectedNone = computed(() => !selected.value.size)
 
   const deselect = (entry: McEntryInfo) => selected.value.delete(entry)
@@ -48,6 +50,7 @@ const useStore = defineStore('entryList', () => {
     selected: selectedRo,
     isSelected,
     isSelectedAll,
+    isSelectedNoneOrOne,
     isSelectedNone,
     deselect,
     toggleSelection,

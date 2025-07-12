@@ -52,20 +52,10 @@
     :model-value="isMenuOpen"
     :entry="menuEntry"
     :target="menuTarget"
-    @escape-key="closeEntryMenu"
-    @save-file="saveFile"
-    @export-psu="exportPsu"
-    @copy-name="copyEntryName"
-    @rename="openRenameEntryDialogue"
-    @delete="deleteEntryFromMenu"
+    @close="closeEntryMenu"
   />
 
-  <DialogueEntryRename
-    v-model="isRenameEntryDialogueOpen"
-    :entry="renamedEntry"
-    :entries-on-card="entries"
-    @rename-entry="renameEntryFromMenu"
-  />
+  <DialogueEntryRename ref="renameDialog" />
 </template>
 
 <script setup lang="ts">
@@ -73,22 +63,19 @@ import { ComponentPublicInstance, nextTick, ref, useTemplateRef, watch } from 'v
 import McfsEntryUp from 'components/McfsEntryUp.vue'
 import McfsEntryItem from 'components/McfsEntryItem.vue'
 import McfsEntryMenu from 'components/McfsEntryMenu.vue'
-import DialogueEntryRename from 'components/DialogueEntryRename.vue'
+import DialogueEntryRename from './DialogueEntryRename.vue'
 import { useMcfs } from 'lib/mcfs'
 import { isDirectoryEntry } from 'lib/mcfs/attributes'
-import { joinPath } from 'lib/mcfs/utils'
-import { useSaveFileDialog } from 'lib/file'
-import { dialogNoTransition, dialogSaveAs, onClickOutside, pluralizeItems } from 'lib/utils'
+import { onClickOutside } from 'lib/utils'
 import { usePathStore } from 'stores/path'
 import { useEntryListStore } from 'stores/entryList'
 import { storeToRefs } from 'pinia'
-import { useClipboard } from '@vueuse/core'
 import { McEntryInfo } from 'ps2mcfs-wasm/mcfs'
+import { provideRenameEntryDialog } from 'lib/dialog'
 
 const mcfs = useMcfs()
 const path = usePathStore()
 const entryList = useEntryListStore()
-const saveFileDialogue = useSaveFileDialog()
 
 const { isLoading, isLoaded } = storeToRefs(mcfs.state)
 const { entries } = storeToRefs(entryList)
@@ -121,6 +108,8 @@ watch(() => path.current, () => {
 })
 
 // region: menu
+
+provideRenameEntryDialog(useTemplateRef('renameDialog'))
 
 const entryToElement = ref(new Map<McEntryInfo, HTMLDivElement>())
 
@@ -215,107 +204,6 @@ watch(() => path.current, () => {
 })
 
 // endregion: menu
-
-// region: save
-
-const saveFile = (entry: McEntryInfo) => {
-  closeEntryMenu()
-
-  const contents = mcfs.readFileEntry({ root: path.current, entry })
-  if (!contents)
-    return
-
-  saveFileDialogue.saveAsBlob(entry.name, contents)
-}
-
-// endregion: save
-
-// region: export .psu
-
-const exportPsu = (entry: McEntryInfo) => {
-  closeEntryMenu()
-
-  if (!isDirectoryEntry(entry))
-    return
-
-  const dirPath = joinPath('/', entry.name)
-  const psu = mcfs.exportDirectoryAsPsu({ dirPath: dirPath })
-  if (!psu)
-    return
-
-  dialogSaveAs({
-    title: 'Export .psu',
-    fileName: `${entry.name}.psu`,
-    onOk: (fileName) => {
-      saveFileDialogue.saveAsBlob(fileName, psu)
-    },
-  })
-}
-
-// endregion: export .psu
-
-
-// region: copy name
-
-const clipboard = useClipboard()
-
-const copyEntryName = (entry: McEntryInfo) => {
-  if (clipboard.isSupported) {
-    clipboard.copy(entry.name)
-  }
-
-  closeEntryMenu()
-}
-
-// endregion: copy name
-
-// region: rename
-
-const isRenameEntryDialogueOpen  = ref(false)
-const renamedEntry = ref<McEntryInfo>()
-
-const openRenameEntryDialogue = (entry: McEntryInfo) => {
-  closeEntryMenu()
-  renamedEntry.value = entry
-  isRenameEntryDialogueOpen.value = true
-}
-
-const renameEntryFromMenu = (newName: string) => {
-  if (!renamedEntry.value)
-    return
-
-  mcfs.renameEntry({ root: path.current,  entry: renamedEntry.value, newName })
-  entryList.refresh()
-}
-
-// endregion: rename
-
-// region: delete
-
-const deleteEntryFromMenu = (entries: McEntryInfo[]) => {
-  closeEntryMenu()
-
-  if (!entries.length)
-    return
-
-  let message: string
-  if (entries.length === 1) {
-    message = `Delete ${entries[0]!.name}?`
-  } else {
-    message = `Delete ${pluralizeItems(entries.length)}?`
-  }
-
-  dialogNoTransition({
-    title: 'Delete',
-    message,
-    cancel: true,
-  }).onOk(() => {
-    entries.forEach(entry => mcfs.deleteEntry({ root: path.current, entry }))
-    entryList.refresh()
-  })
-}
-
-// endregion: delete
 </script>
 
 <style lang="css" scoped>
