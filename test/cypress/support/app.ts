@@ -117,10 +117,21 @@ const openEntryMenu = (name: string) => {
   expectEntryMenuToBeOpen()
 }
 
-const exportEntryFromMenu = (name: string) => {
+const exportEntryAsPsuFromMenu = (name: string) => {
   cy.log(`exporting ${name} from menu`)
   openEntryMenu(name)
   cy.dataCy('entry-menu-exportPsu').click()
+  expectEntryMenuToBeClosed()
+
+  cy.withinDialog(() => {
+    cy.get('button').contains('OK').click()
+  })
+}
+
+const exportEntryAsZipFromMenu = (name: string) => {
+  cy.log(`exporting ${name} as .zip from menu`)
+  openEntryMenu(name)
+  cy.dataCy('entry-menu-exportZip').click()
   expectEntryMenuToBeClosed()
 
   cy.withinDialog(() => {
@@ -196,7 +207,8 @@ export default {
   entryByName: getEntryByName,
   entrySelect: toggleEntrySelection,
   entryMenu: openEntryMenu,
-  exportEntryFromMenu,
+  exportEntryAsPsuFromMenu,
+  exportEntryAsZipFromMenu,
   saveEntryFromMenu,
   deleteEntryFromMenu,
   renameEntryFromMenu,

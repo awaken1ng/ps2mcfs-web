@@ -8,6 +8,7 @@ import { type State } from "../state"
 import { notifyErrorWithCode, notifyWarning } from "../error"
 import { getAvailableSpace } from "./card"
 import { isFileEntry } from "../attributes"
+import { joinPath } from "../utils"
 
 export interface CreateDirectoryOpts {
   dirPath: string,
@@ -99,4 +100,27 @@ export const openAndReadDirectoryFilteredGroupedSortedFlattenedAndUpdateState = 
 
   const { directories, files } = result
   return directories.concat(files)
+}
+
+export interface WalkDirectoryOpts {
+  dirPath: string,
+}
+
+export interface WalkDirectoryReturn {
+  root: string,
+  directories: McEntryInfo[],
+  files: McEntryInfo[],
+}
+
+export const walkDirectory = function* (mcfs: Module, opts: WalkDirectoryOpts): Generator<WalkDirectoryReturn> {
+  const root = openAndReadDirectoryFilteredGroupedSorted(mcfs, opts.dirPath)
+  if (!root)
+    return
+
+  yield { root: opts.dirPath, ...root }
+
+  for (const directory of root.directories) {
+    const dirPath = joinPath(opts.dirPath, directory.name)
+    yield *walkDirectory(mcfs, { dirPath })
+  }
 }

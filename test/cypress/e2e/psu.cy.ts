@@ -71,13 +71,13 @@ describe('PSU', () => {
     app.openCardFromFixtures('cards/foo-bar-baz.mcd')
     clearDownloads()
 
-    app.exportEntryFromMenu('foo')
+    app.exportEntryAsPsuFromMenu('foo')
     compareDownloadWithFixture('foo.psu', 'psu/foo-empty.psu')
 
-    app.exportEntryFromMenu('bar')
+    app.exportEntryAsPsuFromMenu('bar')
     compareDownloadWithFixture('bar.psu', 'psu/bar-unaligned.psu')
 
-    app.exportEntryFromMenu('baz')
+    app.exportEntryAsPsuFromMenu('baz')
     compareDownloadWithFixture('baz.psu', 'psu/baz-aligned.psu')
   })
 })

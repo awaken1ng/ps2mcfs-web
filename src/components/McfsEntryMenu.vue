@@ -40,6 +40,7 @@
 
     <McfsEntryMenuSaveFile :entry @click="close" />
     <McfsEntryMenuExportPsu :entry @click="close" />
+    <McfsEntryMenuExportZip :entry @click="close" />
     <McfsEntryMenuCopyName :entry @click="close" />
     <McfsEntryMenuRenameEntry :entry @click="close" />
     <McfsEntryMenuDeleteEntry :entry @click="close" />
@@ -51,6 +52,7 @@ import { ref } from 'vue'
 import McfsEntryIcon from 'components/McfsEntryIcon.vue'
 import McfsEntryMenuSaveFile from 'components/McfsEntryMenuSaveFile.vue'
 import McfsEntryMenuExportPsu from 'components/McfsEntryMenuExportPsu.vue'
+import McfsEntryMenuExportZip from 'components/McfsEntryMenuExportZip.vue'
 import McfsEntryMenuCopyName from 'components/McfsEntryMenuCopyName.vue'
 import McfsEntryMenuRenameEntry from 'components/McfsEntryMenuRenameEntry.vue'
 import McfsEntryMenuDeleteEntry from 'components/McfsEntryMenuDeleteEntry.vue'

@@ -11,6 +11,7 @@ import {
 import {
   createDirectory, type CreateDirectoryOpts,
   openAndReadDirectoryFilteredGroupedSortedFlattenedAndUpdateState, type ReadDirectoryOpts,
+  walkDirectory, type WalkDirectoryOpts,
 } from './ops/directory'
 import {
   readFileEntry, type ReadFileEntryOpts,
@@ -37,6 +38,7 @@ export const useMcfs = () => {
     closeCard: () => closeCard(state),
     createDirectory: (opts: CreateDirectoryOpts) => createDirectory(mcfs, state, opts),
     readDirectory: (opts: ReadDirectoryOpts) => openAndReadDirectoryFilteredGroupedSortedFlattenedAndUpdateState(mcfs, state, opts),
+    walkDirectory: (opts: WalkDirectoryOpts) => walkDirectory(mcfs, opts),
     readFileEntry: (opts: ReadFileEntryOpts) => readFileEntry(mcfs, opts),
     writeFile: (opts: WriteFileOpts) => writeFile(mcfs, state, opts),
     importDirectoryFromPsu: (opts: ImportPsuOpts) => importDirectoryFromPsu(mcfs, state, opts),
