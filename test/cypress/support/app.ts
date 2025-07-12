@@ -108,7 +108,8 @@ const toggleEntrySelection = (name: string) => {
 
 const openEntryMenu = (name: string) => {
   cy.log(`open entry menu ${name}`)
-  getEntry(name).dataCy('entry-menu-open').click()
+  // force to still open the menu e.g. if its obscured by another menu
+  getEntry(name).dataCy('entry-menu-open').click({ force: true })
   expectEntryMenuToBeOpen()
 }
 
