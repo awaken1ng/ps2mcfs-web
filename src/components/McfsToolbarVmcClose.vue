@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { useMcfs } from 'lib/mcfs'
-import { canDiscardUnsavedChanges } from 'lib/utils'
+import { canDiscardUnsavedChanges } from 'lib/dialog'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
 import { storeToRefs } from 'pinia'

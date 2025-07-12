@@ -17,7 +17,7 @@ import { useSaveFileDialog } from 'lib/file'
 import { useMcfs } from 'lib/mcfs'
 import { isDirectoryEntry } from 'lib/mcfs/attributes'
 import { joinPath } from 'lib/mcfs/utils'
-import { dialogSaveAs } from 'lib/utils'
+import { dialogSaveAs } from 'lib/dialog'
 
 const props = defineProps<{
   entry: McEntryInfo,

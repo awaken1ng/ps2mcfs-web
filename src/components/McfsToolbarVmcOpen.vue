@@ -10,7 +10,8 @@
 <script setup lang="ts">
 import { useMcfs } from 'lib/mcfs'
 import { isEccImage, isNonEccImage } from 'lib/mcfs/ops/card'
-import { canDiscardUnsavedChanges, notifyWarning } from 'lib/utils'
+import { canDiscardUnsavedChanges } from 'lib/dialog'
+import { notifyWarning } from 'lib/utils'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
 import { useFileDialog } from '@vueuse/core'

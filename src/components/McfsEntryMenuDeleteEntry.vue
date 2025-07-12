@@ -13,7 +13,8 @@ import { McEntryInfo } from 'ps2mcfs-wasm/mcfs'
 import { useMcfs } from 'lib/mcfs'
 import { useEntryListStore } from 'stores/entryList'
 import { usePathStore } from 'stores/path'
-import { dialogNoTransition, pluralizeItems } from 'lib/utils'
+import { dialogNoTransition } from 'lib/dialog'
+import { pluralizeItems } from 'lib/utils'
 
 const props = defineProps<{
   entry: McEntryInfo,

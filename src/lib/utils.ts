@@ -1,5 +1,4 @@
-import { Notify, Dialog, QDialogOptions, type QNotifyCreateOptions } from 'quasar'
-import { useMcfsStore } from 'src/stores/mcfs'
+import { Notify, type QNotifyCreateOptions } from 'quasar'
 import { onMounted, onUnmounted } from 'vue'
 
 type ErrorMessage = { message: string, caption?: string }
@@ -76,42 +75,3 @@ export const onClickOutside = (handler: (event: Event) => void) => {
     document.removeEventListener('touchend', handler, true)
   })
 }
-
-export const dialogNoTransition = (opts: QDialogOptions) => {
-  return Dialog.create({
-    // remove transition animation to focus immediately,
-    // instead of waiting for animation to end first
-    // @ts-expect-error not defined in the interface, but its a valid prop
-    transitionDuration: 0,
-    ...opts
-  })
-}
-
-export const dialogSaveAs = (opts: { title: string, fileName: string, onOk: (fileName: string) => void }) => {
-  dialogNoTransition({
-    title: opts.title,
-    message: 'File name:',
-    prompt: {
-      model: opts.fileName,
-    },
-    cancel: true,
-  }).onOk(opts.onOk)
-}
-
-export const canDiscardUnsavedChanges = (message: string) => new Promise((resolve) => {
-  const state = useMcfsStore()
-
-  if (!state.hasUnsavedChanges) {
-    resolve(true)
-    return
-  }
-
-  dialogNoTransition({
-    title: 'Unsaved changes',
-    message,
-    cancel: true,
-  })
-  .onOk(() => resolve(true))
-  .onCancel(() => resolve(false))
-  .onDismiss(() => resolve(false))
-})
