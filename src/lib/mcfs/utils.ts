@@ -1,22 +1,3 @@
-import { McFatSetCardSpecs } from 'ps2mcfs-wasm/mcfs'
-
-export const isNonEccImage = (cardSize: number) => cardSize % 1024 === 0
-
-export const isEccImage = (cardSize: number) => cardSize % 1056 === 0
-
-export const readCardSpecs = (array: Uint8Array): McFatSetCardSpecs => {
-  const view = new DataView(array.buffer)
-
-  const pageSize = view.getUint16(40, true)
-  const pagesPerCluster =  view.getUint16(42, true)
-  const blockSize = view.getUint16(44, true)
-  const clustersPerCard = view.getUint32(48, true)
-  const cardFlags = view.getUint8(337)
-  const cardPages = clustersPerCard * pagesPerCluster
-
-  return { pageSize, blockSize, cardPages, cardFlags }
-}
-
 export const joinPath = (a: string, b: string) => {
   if (a[a.length - 1] !== '/')
     a += '/'
